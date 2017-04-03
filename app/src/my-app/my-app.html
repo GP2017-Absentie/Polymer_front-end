@@ -183,9 +183,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           Datum: [[_systeemdatumlokaal]]</p>
         <hr width="90%">
         <iron-selector selected="[[_ar_page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-
-
-
           <a name="home" href$="[[_c_baseURL]]">
             <iron-icon icon="home"></iron-icon>
             <span>Home</span>
@@ -197,27 +194,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </a>
 
           <!-- beschikbaar voor docent/student---------------------------------------------------- -->
-          <a name="absentMelden" href$="[[_c_baseURL]]absentmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="absentmelden" href$="[[_c_baseURL]]absentmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
             <iron-icon icon="icons:update"></iron-icon>
             <span>Absent Melden</span>
           </a>
 
-          <a name="ziekMelden" href$="[[_c_baseURL]]ziekmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="ziekmelden" href$="[[_c_baseURL]]ziekmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
             <iron-icon icon="maps:local-hospital"></iron-icon>
             <span>Ziek Melden</span>
           </a>
 
-          <a name="absentieOverzicht" href$="[[_c_baseURL]]absentieoverzicht"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="absentieoverzicht" href$="[[_c_baseURL]]absentieoverzicht"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
             <iron-icon icon="editor:pie-chart"></iron-icon>
             <span>Absentie Overzicht</span>
           </a>
 
-          <a name="statistiekenInzien" href$="[[_c_baseURL]]statistiekeninzien"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="statistiekeninzien" href$="[[_c_baseURL]]statistiekeninzien"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
             <iron-icon icon="editor:insert-chart"></iron-icon>
             <span>Statistieken Inzien</span>
           </a>
           <!-- beschikbaar voor docent---------------------------------------------------- -->
-          <a name="absentieOpnemen" href$="[[_c_baseURL]]docent/absentieopnemen"  verborgen$="[[!_are_strings_equal(_rol, 'docent')]]">
+          <a name="docent_absentieopnemen" href$="[[_c_baseURL]]docent/absentieopnemen"  verborgen$="[[!_are_strings_equal(_rol, 'docent')]]">
             <iron-icon icon="social:person-add"></iron-icon>
             <span>Absentie Opnemen</span>
           </a>
@@ -309,6 +306,69 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </section>
 
 <!-- sections voor docent -->
+        <section  name="docent_absentieopnemen"
+                  title="ABSENTIE OPNEMEN"
+                  element$="my-absentieopnemen">
+          <paper-material elevation="1">
+            <my-absentieopnemen
+                    c_visible="[[_are_strings_equal(_ar_page, 'docent_absentieopnemen')]]"
+                    c_rol="[[_rol]]"
+                    c_username="[[_username]]">
+            </my-absentieopnemen>
+          </paper-material>
+        </section>
+<!-- sections voor beide -->
+        <section  name="ziekmelden"
+                  title="ZIEK MELDEN"
+                  element$="my-ziekmelden">
+          <paper-material elevation="1">
+            <!--
+                c_visible="true" als deze section geselecteerd is.
+                LET OP: boolean values moeten als string doorgegeven worden,
+                        vandaar de quotes rondom de function aanroep.
+                        De aanwezige literal waarde wordt met enkele quotes doorgegeven
+            -->
+            <my-ziekmelden
+                    c_visible="[[_are_strings_equal(_ar_page, 'ziekmelden')]]"
+                    c_rol="[[_rol]]"
+                    c_username="[[_username]]">
+            </my-ziekmelden>
+          </paper-material>
+        </section>
+
+        <section  name="absentmelden"
+                  title="ABSENT MELDEN"
+                  element$="my-absentmelden">
+          <paper-material elevation="1">
+            <my-absentmelden
+                    c_visible="[[_are_strings_equal(_ar_page, 'absentmelden')]]"
+                    c_rol="[[_rol]]"
+                    c_username="[[_username]]">
+            </my-absentmelden>
+          </paper-material>
+        </section>
+        <section  name="absentieoverzicht"
+                  title="ABSENTIE OVERZICHT"
+                  element$="my-absentieoverzicht">
+          <paper-material elevation="1">
+            <my-absentieoverzicht
+                    c_visible="[[_are_strings_equal(_ar_page, 'absentieoverzicht')]]"
+                    c_rol="[[_rol]]"
+                    c_username="[[_username]]">
+            </my-absentieoverzicht>
+          </paper-material>
+        </section>
+        <section  name="statistiekeninzien"
+                  title="STATISTIEKEN INZIEN"
+                  element$="my-statistiekeninzien">
+          <paper-material elevation="1">
+            <my-statistiekeninzien
+                    c_visible="[[_are_strings_equal(_ar_page, 'statistiekeninzien')]]"
+                    c_rol="[[_rol]]"
+                    c_username="[[_username]]">
+            </my-statistiekeninzien>
+          </paper-material>
+        </section>
  
  <!-- sections voor student -->
           <section  name="student_medestudenten" 
