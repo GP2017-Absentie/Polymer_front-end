@@ -193,13 +193,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <!-- altijd beschikbaar--------------------------------------------------------- -->
           <a name="systeem_instellen_systeemdatum" href$="[[_c_baseURL]]systeem/instellen_systeemdatum" >
             <iron-icon icon="icons:today"></iron-icon>
-            <span>(test) Instellen systeemdatum</span>
+            <span>Instellen systeemdatum</span>
           </a>
 
+          <!-- beschikbaar voor docent/student---------------------------------------------------- -->
+          <a name="absentMelden" href$="[[_c_baseURL]]absentmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+            <iron-icon icon="icons:update"></iron-icon>
+            <span>Absent Melden</span>
+          </a>
 
+          <a name="ziekMelden" href$="[[_c_baseURL]]ziekmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+            <iron-icon icon="maps:local-hospital"></iron-icon>
+            <span>Ziek Melden</span>
+          </a>
 
+          <a name="absentieOverzicht" href$="[[_c_baseURL]]absentieoverzicht"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+            <iron-icon icon="editor:pie-chart"></iron-icon>
+            <span>Absentie Overzicht</span>
+          </a>
+
+          <a name="statistiekenInzien" href$="[[_c_baseURL]]statistiekeninzien"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+            <iron-icon icon="editor:insert-chart"></iron-icon>
+            <span>Statistieken Inzien</span>
+          </a>
           <!-- beschikbaar voor docent---------------------------------------------------- -->
-
+          <a name="absentieOpnemen" href$="[[_c_baseURL]]docent/absentieopnemen"  verborgen$="[[!_are_strings_equal(_rol, 'docent')]]">
+            <iron-icon icon="social:person-add"></iron-icon>
+            <span>Absentie Opnemen</span>
+          </a>
           <!-- beschikbaar voor student--------------------------------------------------- -->
           <a name="student_medestudenten" href$="[[_c_baseURL]]student/medestudenten"  verborgen$="[[!_are_strings_equal(_rol, 'student')]]">
             <iron-icon icon="social:group"></iron-icon>
@@ -213,7 +234,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <!-- blue title toolbar in menu -->
       <app-toolbar class="toolbar">
         <paper-icon-button  icon="menu" drawer-toggle></paper-icon-button>
-        <span>[[_ar_selected_object.title]] ([[_systeemdatumlokaal]])</span>
+        <span>[[_ar_selected_object.title]]</span>
 
         <div class="loginuit">
         <iron-selector selected="[[_ar_page]]" attr-for-selected="name" class="toolbar-nav" role="navigation">
@@ -440,7 +461,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           die true is als de twee strings gelijk zijn.
           wordt gebruikt in index.html
         */
+
 	    _are_strings_equal: function(p_str1, p_str2) {
+	        if(p_str2 === 'both'&& p_str1 !== 'undefined')
+	            return true;
 	      //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
 	      return (p_str1==p_str2);
 	    },
