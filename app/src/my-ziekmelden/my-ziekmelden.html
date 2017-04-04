@@ -3,6 +3,11 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../../bower_components/brainy-table/brainy-table.html">
+
+
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -30,6 +35,22 @@
                 background: #1a9fd9; /* kind of blue */
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
+            p {
+                font-size: 15px;
+            }
+            #icon {
+                margin-right: 5px;
+            }
+            #table {
+                background-color: white;
+                border-radius: 8px 8px 0 0;
+                -webkit-box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
+                -moz-box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
+                box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
+            }
+            #padding {
+                padding: 10px;
+            }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -37,7 +58,42 @@
                 text="U hebt dit scherm op een illegale manier geactiveerd. U wordt verwezen naar de home page!">
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
-        <h1>Ziek Melden</h1>
+        <h2>Ziek Melden</h2>
+        <p>Welkom [[c_username]],<br>
+            Hier kan je je ziek melden voor vandaag ([[c_systeemdatumlokaal]])</p>
+
+        <paper-input label="Gebruikersnaam" readonly value="[[c_username]]">
+            <iron-icon id="icon" icon="social:person" prefix></iron-icon>
+        </paper-input>
+
+        <paper-input label="Datum" readonly value="[[c_systeemdatumlokaal]]">
+            <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
+        </paper-input>
+
+        <div id="table">
+            <section id="padding">
+            Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
+                Je moet zelf met de docent een oplossing zoeken voor eventuele
+                gemiste verplichtingen</section>
+            <brainy-table items="[[c_vakken]]" page-size="5">
+                <brainy-table-column name="Cursuscode" width="45px">
+                    <template>[[item.code]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Starttijd" width="45px">
+                    <template>[[item.start]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Eindtijd" width="45px">
+                    <template>[[item.eind]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Docent" width="95px">
+                    <template>[[item.docent]]</template>
+                </brainy-table-column>
+            </brainy-table>
+
+        </div>
+
+
+
     </template>
 
     <script>
@@ -52,14 +108,13 @@
                 is: 'my-ziekmelden',
 
                 properties: {
-                    _c_studenten: {
-                        type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
-                         array is constant groepnr is changable */
-                    },
                     c_rol: {
                         type: String,
                     },
                     c_username: {
+                        type: String,
+                    },
+                    c_systeemdatumlokaal: {
                         type: String,
                     },
                     c_visible: {
@@ -69,6 +124,14 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
+                    c_vakken: {
+                        type: Array,
+                        value: [
+                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
+                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
+                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
+                        ]
+                    }
                 },
 
                 _go_home: function() {
