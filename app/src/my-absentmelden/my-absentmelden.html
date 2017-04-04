@@ -3,8 +3,14 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
-<link rel="import" href="../../bower_components/core-dropdown.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-dropdown-input/paper-dropdown-input.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
+<link rel="import" href="../../bower_components/paper-date-picker/paper-calendar.html">
+
 
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
@@ -33,6 +39,17 @@
                 background: #1a9fd9; /* kind of blue */
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
+            paper-button.indigo {
+                background-color: var(--paper-indigo-500);
+                color: white;
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-pink-a200) !important;
+                    color: white !important;
+                }}
+            paper-input{
+                width: 90%;
+
+            }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -41,14 +58,14 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absent Melden</h1>
-        <paper-dropdown-menu label="absentiereden">
-            <paper-listbox class="dropdown-content" selected="1">
-                <paper-item>allosaurus</paper-item>
-                <paper-item>brontosaurus</paper-item>
-                <paper-item>carcharodontosaurus</paper-item>
-                <paper-item>diplodocus</paper-item>
-            </paper-listbox>
-        </paper-dropdown-menu>
+        <paper-date-picker></paper-date-picker>
+        <paper-dropdown-input label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
+        <p style="height: 300px"></p>
+
+        <paper-input label="Opmerking" multiline rows="5">
+            <iron-icon icon="icons:create" prefix></iron-icon>
+        </paper-input>
+        <paper-button raised class="indigo">Absentie doorgeven</paper-button>
 
     </template>
 
