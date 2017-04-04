@@ -4,7 +4,8 @@
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../../bower_components/core-dropdown.html">
-<link href="paper-input.html" rel="import">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -40,8 +41,8 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absent Melden</h1>
-        <paper-dropdown-menu label="Dinosaurs">
-            <paper-listbox class="dropdown-content">
+        <paper-dropdown-menu label="absentiereden">
+            <paper-listbox class="dropdown-content" selected="1">
                 <paper-item>allosaurus</paper-item>
                 <paper-item>brontosaurus</paper-item>
                 <paper-item>carcharodontosaurus</paper-item>
@@ -81,11 +82,6 @@
                          als c_visible false is */
                     },
                 },
-
-                show: function() {
-                this.$.showMenu.toggle();
-            },
-
 
                 _go_home: function() {
                     var lApp = document.querySelector('my-app');  //het polymer element <my-app>
