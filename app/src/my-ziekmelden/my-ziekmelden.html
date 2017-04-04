@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../../bower_components/brainy-table/brainy-table.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
 
 
@@ -41,15 +42,42 @@
             #icon {
                 margin-right: 5px;
             }
-            #table {
+            #tablediv {
                 background-color: white;
-                border-radius: 8px 8px 0 0;
-                -webkit-box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
-                -moz-box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
-                box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
+                border-radius: 8px 8px 8px 8px;
+                -webkit-box-shadow: 1px 1px 3px 0px rgba(109,113,119,1);
+                -moz-box-shadow: 1px 1px 3px 0px rgba(109,113,119,1);
+                box-shadow: 1px 1px 3px 0px rgba(109,113,119,1);
+                width: 80%;
+                margin:0 auto;
+                margin-top: 15px;
+
             }
-            #padding {
+            #table {
+                padding-bottom: 10px;
+                margin: 0 1px;
+            }
+            .padding {
                 padding: 10px;
+            }
+
+            @media screen and (max-width: 950px){
+                #tablediv {
+                    width: 100%;
+                }
+            }
+
+            paper-button.indigo {
+                background-color: #1a9fd9;
+                color: white;
+                float: right;
+                margin-top: 15px;
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-pink-a200) !important;
+                    color: white !important;
+                }}
+            .clear {
+                clear: both;
             }
         </style>
         <paper-toast
@@ -70,12 +98,17 @@
             <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
         </paper-input>
 
-        <div id="table">
-            <section id="padding">
-            Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
+        <div id="tablediv">
+            <template is="dom-if" if="[[_are_strings_equal(c_rol, 'docent')]]">
+                <section class="padding">Dit zijn de lessen die je vandaag zal missen door je afwezigheid. De studenten worden automatisch op de hoogste gesteld van je afwezigheid</section>
+            </template>
+            <template class="padding" is="dom-if" if="[[_are_strings_equal(c_rol, 'student')]]">
+                <section class="padding">Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
                 Je moet zelf met de docent een oplossing zoeken voor eventuele
-                gemiste verplichtingen</section>
-            <brainy-table items="[[c_vakken]]" page-size="5">
+                    gemiste verplichtingen</section>
+            </template>
+
+            <brainy-table id="table" items="[[c_vakken]]" page-size="5">
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.code]]</template>
                 </brainy-table-column>
@@ -85,12 +118,18 @@
                 <brainy-table-column name="Eindtijd" width="45px">
                     <template>[[item.eind]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Docent" width="95px">
-                    <template>[[item.docent]]</template>
-                </brainy-table-column>
+                <template is="dom-if" if="[[_are_strings_equal(c_rol, 'student')]]">
+                    <brainy-table-column name="Docent" width="95px">
+                        <template>[[item.docent]]</template>
+                    </brainy-table-column>
+                </template>
+
             </brainy-table>
 
         </div>
+
+        <paper-button raised class="indigo">Ziek Melden</paper-button>
+        <br class="clear">
 
 
 
@@ -140,6 +179,13 @@
                     lAppRouter.data={page: ""};                   // vul het data attribute met de homepage url
                                                                   // door de two way binding in <app-route> en <app-location>
                                                                   // zal ook de url echt wijzigen
+                },
+
+                _are_strings_equal: function(p_str1, p_str2) {
+                    if(p_str2 === 'both'&& p_str1 !== 'undefined')
+                        return true;
+                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
+                    return (p_str1==p_str2);
                 },
 
                 _initializing : function() {
