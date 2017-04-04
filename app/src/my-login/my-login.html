@@ -109,7 +109,7 @@
           },
           username: {
             type: String,
-            value: "john.smeets@hu.nl",              /* om snel te testen zonder steeds input te doen */
+            value: "timo.glastra@student.hu.nl",              /* om snel te testen zonder steeds input te doen */
             notify: true
           },
         },
@@ -170,8 +170,8 @@
         },
 
         _toast_clicked: function(e) {
-          var lToast = e.path[1];       //path[0] is de button. path[1] is de owner etc.
-          lToast.toggle();              //sluit de foutmelding
+          var lToast = this.$.toast_reeds_aangelogd;       //path[0] is de button. path[1] is de owner etc.
+          lToast.close();              //sluit de foutmelding
           this._go_home();              // en ga verder op de home page
         },
 
