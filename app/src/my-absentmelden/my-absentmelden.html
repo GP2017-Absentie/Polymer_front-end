@@ -3,6 +3,8 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/core-dropdown.html">
+<link href="paper-input.html" rel="import">
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -38,6 +40,15 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absent Melden</h1>
+        <paper-dropdown-menu label="Dinosaurs">
+            <paper-listbox class="dropdown-content">
+                <paper-item>allosaurus</paper-item>
+                <paper-item>brontosaurus</paper-item>
+                <paper-item>carcharodontosaurus</paper-item>
+                <paper-item>diplodocus</paper-item>
+            </paper-listbox>
+        </paper-dropdown-menu>
+
     </template>
 
     <script>
@@ -71,6 +82,11 @@
                     },
                 },
 
+                show: function() {
+                this.$.showMenu.toggle();
+            },
+
+
                 _go_home: function() {
                     var lApp = document.querySelector('my-app');  //het polymer element <my-app>
                     var lAppRouter = lApp.$.approuter;            // het html-element <app-route> met id=approuter
@@ -82,7 +98,7 @@
                 _initializing : function() {
                     if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
                         if (this.c_rol=="student" || this.c_rol=="docent") {                        // voor studenten
-                            this._medestudenten_ophalen_request_handler();    //    haal info op van server
+                           //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                             lToast.open();                                    /* het sluiten van deze error verwijst  */
