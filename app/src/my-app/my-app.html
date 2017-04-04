@@ -179,7 +179,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar class="toolbar">
           <img id="toolbarlogo" src="../../images/hu_logo.png" alt="HU" />
         </app-toolbar>
-        <p class="userInfo">Gebruiker: [[_user]]<br>
+        <p class="userInfo">Gebruiker: [[_username]]<br>
           Datum: [[_systeemdatumlokaal]]</p>
         <hr width="90%">
         <iron-selector selected="[[_ar_page]]" attr-for-selected="name" class="drawer-list" role="navigation">
@@ -331,7 +331,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <my-ziekmelden
                     c_visible="[[_are_strings_equal(_ar_page, 'ziekmelden')]]"
                     c_rol="[[_rol]]"
-                    c_username="[[_username]]">
+                    c_username="[[_username]]"
+                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]">
             </my-ziekmelden>
           </paper-material>
         </section>
