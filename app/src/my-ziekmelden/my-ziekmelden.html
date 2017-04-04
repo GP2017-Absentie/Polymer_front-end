@@ -123,13 +123,26 @@
                         <template>[[item.docent]]</template>
                     </brainy-table-column>
                 </template>
+                <template is="dom-if" if="[[_are_strings_equal(c_rol, 'docent')]]">
+                    <brainy-table-column name="Klas" width="95px">
+                        <template>[[item.klas]]</template>
+                    </brainy-table-column>
+                </template>
 
             </brainy-table>
 
         </div>
 
-        <paper-button raised class="indigo">Ziek Melden</paper-button>
+        <paper-button raised on-click="_meld_ziek" class="indigo">Ziek Melden</paper-button>
         <br class="clear">
+
+        <iron-ajax
+                id="ajax_ziekmelden"
+                method="POST"
+                url="/vakkenophalen"
+                handle-as="json"
+                on-response="_ophalen_login_response_handler">
+        </iron-ajax>
 
 
 
@@ -155,6 +168,7 @@
                     },
                     c_systeemdatumlokaal: {
                         type: String,
+
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
@@ -165,11 +179,49 @@
                     },
                     c_vakken: {
                         type: Array,
-                        value: [
-                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
-                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
-                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
-                        ]
+                        computed: "_vakken_ophalen(c_username, c_systeemdatumlokaal)"
+                    }
+                },
+
+                _vakken_ophalen: function (user, date) {
+                    //send user & date and get the information about that day
+                    var vakken = [
+                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
+                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
+                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
+                        ];
+                    return vakken;
+                },
+
+                _meld_ziek: function () {
+                    console.log("_ophalen_login_request_handler username=" + this.username);
+                    if (this.rol == "undefined") {
+                        this.$.ajax_login.contentType="application/json";
+                        this.$.ajax_login.body={
+                            "username":this.username,
+                            "password":this._password
+                        };
+                        this.$.ajax_login.generateRequest();
+                    } else {
+                        var lToast = this.$.toast_reeds_aangelogd;     // meldt reeds aangelogd
+                        lToast.open();                                  /* het sluiten van deze error verwijst  */
+                        /* terug naar home page */
+                    }
+                    //send user & date and the backend will process it further
+                },
+
+                _meld_ziek_handler: function (request) {
+                    console.log("_ophalen_login_response_handler username="+this.username);
+                    this.rol = request.detail.response.rol;
+                    /* this._password = ""; /* om snel te kunnen testen is dit verwijderd */
+                    if (this.rol == "undefined") {                    //als aanloggen mislukt
+                        this.$.email_element.invalid = true;                // markeer email-element
+                        this.$.wachtwoord_element.invalid = true;           // markeer wachtwoord-element
+
+                    } else {                                            // als aanloggen ok
+                        this.$.email_element.invalid = false;               // verwijder fout markering
+                        this.$.wachtwoord_element.invalid = false;          // verwijder fout markering
+                        this._go_home();                                    // ga naar de home page.
                     }
                 },
 
