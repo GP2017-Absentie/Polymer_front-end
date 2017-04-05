@@ -40,7 +40,7 @@
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
             paper-button.indigo {
-                background-color: var(--paper-indigo-500);
+                background-color: #1a9fd9;
                 color: white;
                 --paper-button-raised-keyboard-focus: {
                     background-color: var(--paper-pink-a200) !important;
@@ -59,6 +59,29 @@
         </paper-toast>
         <h1>Absent Melden</h1>
         <paper-date-picker></paper-date-picker>
+        <br>
+        <div id="table">
+            <section id="padding">
+                Geeft lessen weer van de geselecteerde dag</section>
+            <brainy-table items="[[c_vakken]]" page-size="5">
+                <brainy-table-column name="Cursuscode" width="45px">
+                    <template>[[item.code]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Starttijd" width="45px">
+                    <template>[[item.start]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Eindtijd" width="45px">
+                    <template>[[item.eind]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Docent" width="95px">
+                    <template>[[item.docent]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Selected" flex="1" width="50px">
+                    <template><paper-checkbox checked="{{expanded}}"></paper-checkbox></template>
+                </brainy-table-column>
+            </brainy-table>
+
+        </div>
         <paper-dropdown-input label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
         <p style="height: 300px"></p>
 
@@ -98,6 +121,14 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
+                    c_vakken: {
+                        type: Array,
+                        value: [
+                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
+                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
+                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
+                        ]
+                    }
                 },
 
                 _go_home: function() {
