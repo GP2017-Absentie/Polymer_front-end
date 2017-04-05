@@ -30,6 +30,16 @@
                 background: #1a9fd9; /* kind of blue */
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
+            paper-button.groen {
+                background-color: #58B957;
+                color: white;
+                float: right;
+                }
+            paper-button.annuleren {
+                background-color: #999999;
+                color: white;
+                float: right;
+                }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -38,6 +48,38 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absentie Overzicht</h1>
+        <div id="table">
+            <section id="padding">
+                Verleden absenties</section>
+            <brainy-table items="[[c_verledenabsentie]]" page-size="5">
+                <brainy-table-column name="Datum" width="45px">
+                    <template>[[item.datum]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Absentie" width="45px">
+                    <template><paper-button raised class="groen">[[item.absentie]]</paper-button></template>
+                </brainy-table-column>
+                <brainy-table-column name="Vak" width="45px">
+                    <template>[[item.vak]]</template>
+                </brainy-table-column>
+            </brainy-table>
+            <br>
+            <div id="table1">
+                <section id="padding1">
+                    Komende absenties</section>
+                <brainy-table items="[[c_verledenabsentie]]" page-size="5">
+                    <brainy-table-column name="Datum" width="45px">
+                        <template>[[item.datum]]</template>
+                    </brainy-table-column>
+                    <brainy-table-column name="Absentie" width="45px">
+                        <template><paper-button class="groen">[[item.absentie]]</paper-button></template>
+                    </brainy-table-column>
+                    <brainy-table-column name="Vak" width="45px">
+                        <template>[[item.vak]]</template>
+                    </brainy-table-column>
+                    <brainy-table-column name="Annuleren" width="45px">
+                        <template><paper-button raised class="annuleren">Annuleren</paper-button></template>
+                    </brainy-table-column>
+                </brainy-table>
     </template>
 
     <script>
@@ -69,6 +111,14 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
+                    c_verledenabsentie: {
+                        type: Array,
+                        value: [
+                            {datum: "28-01-2017", absentie: "Ziek", vak: "OODC"},
+                            {datum: "28-02-2017", absentie: "Tandarts", vak: "AUI"},
+                            {datum: "28-03-2017", absentie: "Te laat", vak: "HTML"}]
+
+                    }
                 },
 
                 _go_home: function() {
