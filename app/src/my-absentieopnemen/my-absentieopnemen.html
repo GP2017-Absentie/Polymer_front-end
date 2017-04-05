@@ -69,11 +69,8 @@
                     <template>[[item.docent]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Selecteer Les" width="50px">
-                    <paper-radio-group attr-for-selected="value">
-                        
-                        <template><paper-radio-button GroupName="group1" name="same_name"></paper-radio-button></template>
+                    <template><input type="radio" name="vak" value="[[item.code]]"></template>
 
-                    </paper-radio-group>
                 </brainy-table-column>
             </brainy-table>
             <br>
