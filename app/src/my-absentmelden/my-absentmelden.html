@@ -64,7 +64,7 @@
         <div id="table">
             <section id="padding">
                 Geeft lessen weer van de geselecteerde dag</section>
-            <brainy-table items="[[c_vakken]]" page-size="5">
+            <brainy-table items="{{c_vakken}}" page-size="5">
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.code]]</template>
                 </brainy-table-column>
@@ -78,23 +78,31 @@
                     <template>[[item.docent]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Selected" flex="1" width="50px">
-                    <template><paper-checkbox checked="{{expanded}}"></paper-checkbox></template>
+                    <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
                 </brainy-table-column>
             </brainy-table>
 
         </div>
-        <paper-dropdown-input label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
+        <paper-dropdown-input value={{reden}} label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
         <p style="height: 300px"></p>
 
-        <paper-input label="Opmerking" multiline rows="5">
+        <paper-input label="Opmerking" multiline rows="5" value="{{opmerking}}">
             <iron-icon icon="icons:create" prefix></iron-icon>
         </paper-input>
-        <paper-button raised on-click=[[]] class="indigo">Absentie doorgeven</paper-button>
+        <paper-button raised on-click="_absent_melden" class="indigo">Absentie doorgeven</paper-button>
 
         <iron-ajax
                 id="ajax_vakken_ophalen"
                 method="POST"
                 url="/vakkenophalen"
+                handle-as="json"
+                on-response="_vakken_ophalen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_absent_melden"
+                method="POST"
+                url="/absentmelden"
                 handle-as="json"
                 on-response="_vakken_ophalen_handler">
         </iron-ajax>
@@ -140,6 +148,12 @@
                     },
                     c_vakken: {
                         type: Array,
+                    },
+                    reden : {
+                        type: String,
+                    },
+                    opmerking : {
+                        type: String
                     }
                 },
 
@@ -157,15 +171,49 @@
                         ajax.generateRequest();
                     }
                     this._initializing();
-                    this.c_vakken =
-                 [
-                            {code: "AUIII", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
+                    this.c_vakken = [
+                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
                             {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
                             {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
                         ];
+                    for(var i=0; i<this.c_vakken.length; i++) {
+                        this.c_vakken[i].checked = false;
+                    }
+
                 },
 
                 _vakken_ophalen_handler: function (request) {
+                    this.c_vakken = request.detail.response.vakken;
+                },
+
+
+                _absent_melden: function () {
+                    if (this.c_visible) {
+                        var date = this.c_datum;
+                        var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+                        var checked = [];
+                        for (var i=0; i < this.c_vakken.length; i++) {
+                            if (this.c_vakken[i].checked == true) {
+                                checked.push(this.c_vakken[i]);
+                            }
+                        }
+                        var reden = this.reden;
+                        var opmerking = this.opmerking;
+
+                        if(newDate != null && checked.length != 0 && reden != null && ((reden == "Overig" && opmerking.length != 0) || reden != "Overig")) {
+                            var ajax = this.$.ajax_vakken_ophalen;
+                            ajax.contentType = "application/json";
+                            ajax.body = {
+                                user: this.c_username,
+                                date: newDate
+                            };
+                            //ajax.generateRequest();
+                        }
+                        else console.log("Bevat fouten")
+                    }
+                },
+
+                _absent_melden_handler: function (request) {
                     this.c_vakken = request.detail.response.vakken;
                 },
 
