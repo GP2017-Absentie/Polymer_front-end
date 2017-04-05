@@ -79,6 +79,18 @@
             .clear {
                 clear: both;
             }
+
+            #goed {
+                background-color: #a9ff8c;
+                display: none;
+                border-radius: 0 0 8px 8px;
+            }
+            #fout {
+                background-color: rgba(255, 83, 66, 0.58);
+                display: none;
+                border-radius: 0 0 8px 8px;
+            }
+
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -130,6 +142,8 @@
                 </template>
 
             </brainy-table>
+                <div id="goed" class="padding">Je bent ziek gemeld! Veel beterschap</div>
+                <div id="fout" class="padding">Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.</div>
 
         </div>
 
@@ -137,11 +151,19 @@
         <br class="clear">
 
         <iron-ajax
-                id="ajax_ziekmelden"
+                id="ajax_vakken_ophalen"
                 method="POST"
                 url="/vakkenophalen"
                 handle-as="json"
-                on-response="_ophalen_login_response_handler">
+                on-response="_vakken_ophalen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_ziek_melden"
+                method="POST"
+                url="/ziekmelden"
+                handle-as="json"
+                on-response="_meld_ziek_handler">
         </iron-ajax>
 
 
@@ -173,56 +195,53 @@
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_vakken_ophalen'                         /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
                     c_vakken: {
                         type: Array,
-                        computed: "_vakken_ophalen(c_username, c_systeemdatumlokaal)"
-                    }
+//                        computed: "_vakken_ophalen(c_username, c_systeemdatumlokaal)"
+                    },
                 },
 
                 _vakken_ophalen: function (user, date) {
-                    //send user & date and get the information about that day
-                    var vakken = [
-                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
-                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
-                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
-                        ];
-                    return vakken;
+                    if (this.c_visible) {
+                        var ajax = this.$.ajax_vakken_ophalen;
+                        ajax.contentType="application/json";
+                        ajax.body={
+                            user: this.c_username,
+                            date: this.c_systeemdatumlokaal
+                        };
+                        ajax.generateRequest();
+                    }
+                    this._initializing();
+//                    var vakken = [
+//                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
+//                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
+//                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
+//                        ];
+//                    return vakken;
+                },
+
+                _vakken_ophalen_handler: function (request) {
+                    this.c_vakken = request.detail.response.vakken;
                 },
 
                 _meld_ziek: function () {
-                    console.log("_ophalen_login_request_handler username=" + this.username);
-                    if (this.rol == "undefined") {
-                        this.$.ajax_login.contentType="application/json";
-                        this.$.ajax_login.body={
-                            "username":this.username,
-                            "password":this._password
-                        };
-                        this.$.ajax_login.generateRequest();
-                    } else {
-                        var lToast = this.$.toast_reeds_aangelogd;     // meldt reeds aangelogd
-                        lToast.open();                                  /* het sluiten van deze error verwijst  */
-                        /* terug naar home page */
-                    }
-                    //send user & date and the backend will process it further
+                    var ajax = this.$.ajax_ziek_melden;
+                    ajax.contentType="application/json";
+                    ajax.body={
+                        user: this.c_username,
+                        date: this.c_systeemdatumlokaal
+                    };
+                    ajax.generateRequest();
+                    this.$.fout.style.display = "block";
                 },
 
                 _meld_ziek_handler: function (request) {
-                    console.log("_ophalen_login_response_handler username="+this.username);
-                    this.rol = request.detail.response.rol;
-                    /* this._password = ""; /* om snel te kunnen testen is dit verwijderd */
-                    if (this.rol == "undefined") {                    //als aanloggen mislukt
-                        this.$.email_element.invalid = true;                // markeer email-element
-                        this.$.wachtwoord_element.invalid = true;           // markeer wachtwoord-element
+                    //response krijgen dat het goed gegaan is of niet. Indien goed:
 
-                    } else {                                            // als aanloggen ok
-                        this.$.email_element.invalid = false;               // verwijder fout markering
-                        this.$.wachtwoord_element.invalid = false;          // verwijder fout markering
-                        this._go_home();                                    // ga naar de home page.
-                    }
                 },
 
                 _go_home: function() {
@@ -250,6 +269,8 @@
                             /* terug naar home page */
                         }
                     }
+                    this.$.fout.style.display = "none";
+                    this.$.goed.style.display = "none";
                 },
 
                 _toast_clicked: function(e) {
