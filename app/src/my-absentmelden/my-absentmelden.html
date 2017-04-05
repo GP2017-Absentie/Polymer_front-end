@@ -11,6 +11,7 @@
 <link rel="import" href="../../bower_components/paper-date-picker/paper-date-picker.html">
 <link rel="import" href="../../bower_components/paper-date-picker/paper-calendar.html">
 <link rel="import" href="../../bower_components/brainy-table/brainy-table.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
@@ -58,7 +59,7 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absent Melden</h1>
-        <paper-date-picker></paper-date-picker>
+        <paper-date-picker date="{{c_datum}}"></paper-date-picker>
         <br>
         <div id="table">
             <section id="padding">
@@ -88,9 +89,18 @@
         <paper-input label="Opmerking" multiline rows="5">
             <iron-icon icon="icons:create" prefix></iron-icon>
         </paper-input>
-        <paper-button raised class="indigo">Absentie doorgeven</paper-button>
+        <paper-button raised on-click=[[]] class="indigo">Absentie doorgeven</paper-button>
 
-    </template>
+        <iron-ajax
+                id="ajax_vakken_ophalen"
+                method="POST"
+                url="/vakkenophalen"
+                handle-as="json"
+                on-response="_vakken_ophalen_handler">
+        </iron-ajax>
+            </template>
+
+
 
     <script>
         (function() {
@@ -114,21 +124,49 @@
                     c_username: {
                         type: String,
                     },
+                    c_systeemdatumlokaal: {
+                        type: String
+                    },
+                    c_datum: {
+                        type: String,
+                        observer: '_vakken_ophalen'
+                    },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_vakken_ophalen',                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
                     c_vakken: {
                         type: Array,
-                        value: [
-                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
-                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
-                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
-                        ]
                     }
+                },
+
+                _vakken_ophalen: function (user, date) {
+                    if (this.c_visible) {
+                        var date = this.c_datum;
+                        var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+
+                        var ajax = this.$.ajax_vakken_ophalen;
+                        ajax.contentType="application/json";
+                        ajax.body={
+                            user: this.c_username,
+                            date: newDate
+                        };
+                        ajax.generateRequest();
+                    }
+                    this._initializing();
+                    this.c_vakken =
+                 [
+                            {code: "AUIII", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
+                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
+                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
+                        ];
+                },
+
+                _vakken_ophalen_handler: function (request) {
+                    this.c_vakken = request.detail.response.vakken;
                 },
 
                 _go_home: function() {
