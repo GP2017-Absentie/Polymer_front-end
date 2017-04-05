@@ -30,6 +30,15 @@
                 background: #1a9fd9; /* kind of blue */
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
+            paper-button.indigo {
+                background-color: #1a9fd9;
+                color: white;
+                float: right;
+                margin-top: 15px;
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-pink-a200) !important;
+                    color: white !important;
+                }}
         </style>
 
         <paper-toast
@@ -39,6 +48,53 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absentie Opnemen</h1>
+        <paper-input label="Datum" readonly value="[[c_systeemdatumlokaal]]">
+            <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
+        </paper-input>
+        <div id="table">
+            <section id="padding">
+                Dagrooster</section>
+            <brainy-table items="[[c_vakken]]" page-size="5">
+                <brainy-table-column name="Cursuscode" width="45px">
+                    <template>[[item.code]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Starttijd" width="45px">
+                    <template>[[item.start]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Eindtijd" width="45px">
+                    <template>[[item.eind]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Docent" width="95px">
+                    <template>[[item.docent]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Selected" flex="1" width="50px">
+                    <template><paper-checkbox checked="{{expanded}}"></paper-checkbox></template>
+                </brainy-table-column>
+            </brainy-table>
+            <br>
+            <section id="padding1">
+                Studentenlijst</section>
+            <brainy-table items="[[c_leerlingenpervak]]" page-size="5">
+                <brainy-table-column name="Studentnummer" width="45px">
+                    <template>[[item.code]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Voornaam" width="45px">
+                    <template>[[item.voornaam]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Achternaam" width="45px">
+                    <template>[[item.achternaam]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Selected" flex="1" width="50px">
+                    <template><paper-checkbox checked="{{expanded}}">Absent</paper-checkbox></template>
+                </brainy-table-column>
+                <brainy-table-column name="Selected" flex="1" width="50px">
+                    <template><paper-checkbox checked="{{expanded}}">Te laat</paper-checkbox></template>
+                </brainy-table-column>
+            </brainy-table>
+            <br>
+            <paper-button raised on-click="_meld_ziek" class="indigo">Ziek Melden</paper-button>
+
+        </div>
     </template>
 
 
@@ -64,6 +120,10 @@
                     c_username: {
                         type: String,
                     },
+                    c_systeemdatumlokaal: {
+                        type: String,
+
+                    },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
@@ -71,6 +131,22 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
+                    c_vakken: {
+                        type: Array,
+                        value: [
+                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
+                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
+                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
+                        ]
+                    },
+                    c_leerlingenpervak: {
+                        type: Array,
+                        value: [
+                            {code: "5677", voornaam: "Timo", achternaam: "Glastra"},
+                            {code: "5435", voornaam: "Karim", achternaam: "Stekelenburg"},
+                            {code: "1235", voornaam: "Owen", achternaam: "Ashby"}]
+
+                    }
                 },
 
                 _go_home: function() {
