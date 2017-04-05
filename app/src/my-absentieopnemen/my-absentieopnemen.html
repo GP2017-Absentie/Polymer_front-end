@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -67,8 +68,12 @@
                 <brainy-table-column name="Docent" width="95px">
                     <template>[[item.docent]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Selected" flex="1" width="50px">
-                    <template><paper-checkbox checked="{{expanded}}"></paper-checkbox></template>
+                <brainy-table-column name="Selecteer Les" width="50px">
+                    <paper-radio-group attr-for-selected="value">
+                        
+                        <template><paper-radio-button GroupName="group1" name="same_name"></paper-radio-button></template>
+
+                    </paper-radio-group>
                 </brainy-table-column>
             </brainy-table>
             <br>
