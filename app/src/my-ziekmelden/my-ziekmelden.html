@@ -6,6 +6,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../../bower_components/brainy-table/brainy-table.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
 
 
@@ -41,15 +42,42 @@
             #icon {
                 margin-right: 5px;
             }
-            #table {
+            #tablediv {
                 background-color: white;
-                border-radius: 8px 8px 0 0;
-                -webkit-box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
-                -moz-box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
-                box-shadow: 1px 2px 12px 0px rgba(68,68,68,1);
+                border-radius: 8px 8px 8px 8px;
+                -webkit-box-shadow: 1px 1px 3px 0px rgba(109,113,119,1);
+                -moz-box-shadow: 1px 1px 3px 0px rgba(109,113,119,1);
+                box-shadow: 1px 1px 3px 0px rgba(109,113,119,1);
+                width: 80%;
+                margin:0 auto;
+                margin-top: 15px;
+
             }
-            #padding {
+            #table {
+                padding-bottom: 10px;
+                margin: 0 1px;
+            }
+            .padding {
                 padding: 10px;
+            }
+
+            @media screen and (max-width: 950px){
+                #tablediv {
+                    width: 100%;
+                }
+            }
+
+            paper-button.indigo {
+                background-color: #1a9fd9;
+                color: white;
+                float: right;
+                margin-top: 15px;
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-pink-a200) !important;
+                    color: white !important;
+                }}
+            .clear {
+                clear: both;
             }
         </style>
         <paper-toast
@@ -70,12 +98,17 @@
             <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
         </paper-input>
 
-        <div id="table">
-            <section id="padding">
-            Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
+        <div id="tablediv">
+            <template is="dom-if" if="[[_are_strings_equal(c_rol, 'docent')]]">
+                <section class="padding">Dit zijn de lessen die je vandaag zal missen door je afwezigheid. De studenten worden automatisch op de hoogste gesteld van je afwezigheid</section>
+            </template>
+            <template class="padding" is="dom-if" if="[[_are_strings_equal(c_rol, 'student')]]">
+                <section class="padding">Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
                 Je moet zelf met de docent een oplossing zoeken voor eventuele
-                gemiste verplichtingen</section>
-            <brainy-table items="[[c_vakken]]" page-size="5">
+                    gemiste verplichtingen</section>
+            </template>
+
+            <brainy-table id="table" items="[[c_vakken]]" page-size="5">
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.code]]</template>
                 </brainy-table-column>
@@ -85,12 +118,31 @@
                 <brainy-table-column name="Eindtijd" width="45px">
                     <template>[[item.eind]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Docent" width="95px">
-                    <template>[[item.docent]]</template>
-                </brainy-table-column>
+                <template is="dom-if" if="[[_are_strings_equal(c_rol, 'student')]]">
+                    <brainy-table-column name="Docent" width="95px">
+                        <template>[[item.docent]]</template>
+                    </brainy-table-column>
+                </template>
+                <template is="dom-if" if="[[_are_strings_equal(c_rol, 'docent')]]">
+                    <brainy-table-column name="Klas" width="95px">
+                        <template>[[item.klas]]</template>
+                    </brainy-table-column>
+                </template>
+
             </brainy-table>
 
         </div>
+
+        <paper-button raised on-click="_meld_ziek" class="indigo">Ziek Melden</paper-button>
+        <br class="clear">
+
+        <iron-ajax
+                id="ajax_ziekmelden"
+                method="POST"
+                url="/vakkenophalen"
+                handle-as="json"
+                on-response="_ophalen_login_response_handler">
+        </iron-ajax>
 
 
 
@@ -116,6 +168,7 @@
                     },
                     c_systeemdatumlokaal: {
                         type: String,
+
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
@@ -126,11 +179,49 @@
                     },
                     c_vakken: {
                         type: Array,
-                        value: [
-                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
-                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
-                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
-                        ]
+                        computed: "_vakken_ophalen(c_username, c_systeemdatumlokaal)"
+                    }
+                },
+
+                _vakken_ophalen: function (user, date) {
+                    //send user & date and get the information about that day
+                    var vakken = [
+                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
+                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
+                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
+                        ];
+                    return vakken;
+                },
+
+                _meld_ziek: function () {
+                    console.log("_ophalen_login_request_handler username=" + this.username);
+                    if (this.rol == "undefined") {
+                        this.$.ajax_login.contentType="application/json";
+                        this.$.ajax_login.body={
+                            "username":this.username,
+                            "password":this._password
+                        };
+                        this.$.ajax_login.generateRequest();
+                    } else {
+                        var lToast = this.$.toast_reeds_aangelogd;     // meldt reeds aangelogd
+                        lToast.open();                                  /* het sluiten van deze error verwijst  */
+                        /* terug naar home page */
+                    }
+                    //send user & date and the backend will process it further
+                },
+
+                _meld_ziek_handler: function (request) {
+                    console.log("_ophalen_login_response_handler username="+this.username);
+                    this.rol = request.detail.response.rol;
+                    /* this._password = ""; /* om snel te kunnen testen is dit verwijderd */
+                    if (this.rol == "undefined") {                    //als aanloggen mislukt
+                        this.$.email_element.invalid = true;                // markeer email-element
+                        this.$.wachtwoord_element.invalid = true;           // markeer wachtwoord-element
+
+                    } else {                                            // als aanloggen ok
+                        this.$.email_element.invalid = false;               // verwijder fout markering
+                        this.$.wachtwoord_element.invalid = false;          // verwijder fout markering
+                        this._go_home();                                    // ga naar de home page.
                     }
                 },
 
@@ -140,6 +231,13 @@
                     lAppRouter.data={page: ""};                   // vul het data attribute met de homepage url
                                                                   // door de two way binding in <app-route> en <app-location>
                                                                   // zal ook de url echt wijzigen
+                },
+
+                _are_strings_equal: function(p_str1, p_str2) {
+                    if(p_str2 === 'both'&& p_str1 !== 'undefined')
+                        return true;
+                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
+                    return (p_str1==p_str2);
                 },
 
                 _initializing : function() {
