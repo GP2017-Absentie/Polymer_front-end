@@ -193,14 +193,14 @@
                         var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
                         var checked = [];
                         for (var i=0; i < this.c_vakken.length; i++) {
-                            if (this.c_vakken[i].checked == true) {
+                            if (this.c_vakken[i].checked === true) {
                                 checked.push(this.c_vakken[i]);
                             }
                         }
                         var reden = this.reden;
                         var opmerking = this.opmerking;
 
-                        if(newDate != null && checked.length != 0 && reden != null && ((reden == "Overig" && opmerking.length != 0) || reden != "Overig")) {
+                        if(newDate !== null && checked.length !== 0 && reden !== null && ((reden === "Overig" && opmerking.length !== 0) || reden !== "Overig")) {
                             var ajax = this.$.ajax_vakken_ophalen;
                             ajax.contentType = "application/json";
                             ajax.body = {
@@ -227,7 +227,7 @@
 
                 _initializing : function() {
                     if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_rol=="student" || this.c_rol=="docent") {                        // voor studenten
+                        if (this.c_rol==="student" || this.c_rol==="docent") {                        // voor studenten
                            //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
