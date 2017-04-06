@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
 
 <dom-module id="my-login">
     <template>
@@ -62,6 +63,14 @@
                 background: lightgray;
                 color: darkgray;
             }
+            #error {
+                text-align: center;
+                margin: 10px 0;
+                padding: 10px 2px;
+                background-color: rgba(255, 35, 26, 0.56);
+                color: white;
+                display: none;
+            }
         </style>
 
         <paper-toast id="toast_reeds_aangelogd" duration="0" text="U bent al ingelogd!">
@@ -72,10 +81,12 @@
             <iron-icon icon="icons:perm-identity" class="my-icon"></iron-icon>
         </div>
         <div class="my-input">
+            <paper-material elevation="2" id="error">Ongeldige gebruikersnaam en/of wachtwoord</paper-material>
             <paper-input id="email_element" on-keydown="_checkForEnter" label="Gebruikersnaam"
                          value="{{user.email}}"></paper-input>
             <paper-input id="wachtwoord_element" on-keydown="_checkForEnter" label="Wachtwoord" type="password"
                          value="{{_password}}"></paper-input>
+
         </div>
         <paper-button
                 id="login_button_element"
@@ -88,7 +99,7 @@
         <iron-ajax
                 id="ajax_login"
                 method="POST"
-                url="/login"
+                url="http://localhost:8080/persoon/login"
                 handle-as="json"
                 on-response="_ophalen_login_response_handler">
         </iron-ajax>
@@ -146,11 +157,12 @@
                 },
 
                 _ophalen_login_request_handler: function () {
+                    this.$.error.style.display = "none";
                     if (this.user.rol === "undefined") {
                         this.$.ajax_login.contentType = "application/json";
                         this.$.ajax_login.body = {
-                            email: this.user.email,
-                            password: this._password
+                            "email": this.user.email,
+                            "password": this._password
                         };
                         this.$.ajax_login.generateRequest();
                     } else {
@@ -162,11 +174,16 @@
                 },
 
                 _ophalen_login_response_handler: function (request) {
-                    this.user = request.detail.response.user;
+                    var user = request.detail.response;
+                    if(user.status === 400) user.rol = "undefined";
+                    else if (user.klas === undefined) user.rol = "docent";
+                    else if (user.klas !== undefined) user.rol = "student";
+                    this.user = user;
                     this._password = "";
                     if (this.user.rol === "undefined") {                    //als aanloggen mislukt
                         this.$.email_element.invalid = true;                // markeer email-element
-                        this.$.wachtwoord_element.invalid = true;           // markeer wachtwoord-element
+                        this.$.wachtwoord_element.invalid = true;// markeer wachtwoord-element
+                        this.$.error.style.display = "block";
 
                     } else {                                            // als aanloggen ok
                         this.$.email_element.invalid = false;               // verwijder fout markering

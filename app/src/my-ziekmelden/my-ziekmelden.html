@@ -36,8 +36,8 @@
                 margin-right: 5px;
             }
             .padding {
-                padding-top: 15px;
-                padding-bottom: 15px;
+                padding: 15px;
+                text-align: center;
             }
             paper-button.indigo {
                 background-color: #1a9fd9;
@@ -77,11 +77,11 @@
 
         <!--PAGINA HEADER-->
         <h2>Ziek Melden</h2>
-        <p>Welkom [[c_user.name]],<br>
+        <p>Welkom [[c_user.naam]],<br>
            Hier kan je je ziek melden voor vandaag ([[c_systeemdatumlokaal]])</p>
 
         <!--NAAM VAN GEBRUIKER, READONLY-->
-        <paper-input label="Gebruiker" readonly value="[[c_user.name]]">
+        <paper-input label="Gebruiker" readonly value="[[c_user.naam]]">
             <iron-icon id="icon" icon="social:person" prefix></iron-icon>
         </paper-input>
 
@@ -99,26 +99,26 @@
         </template>
         <!--IF ROL IS STUDENT-->
         <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'student')]]">
-            <section class="padding">Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
+            <section class="padding">Dit zijn de lessen die je vandaag zal missen door je afwezigheid.
                                      Je moet zelf met de docent een oplossing zoeken voor eventuele
                                      gemiste verplichtingen
             </section>
         </template>
 
         <!--TABEL MET ALLE LESSEN VAN "VANDAAG"-->
-        <brainy-table id="table" items="[[vakken]]" page-size="5">
-            <brainy-table-column name="Cursuscode" width="45px">
-                <template>[[item.code]]</template>
+        <brainy-table id="table" items="[[lessen]]" page-size="5">
+            <brainy-table-column name="Cursuscode" width="70px">
+                <template>[[item.vakCode]]</template>
             </brainy-table-column>
-            <brainy-table-column name="Starttijd" width="45px">
-                <template>[[item.start]]</template>
+            <brainy-table-column name="Starttijd" width="30px">
+                <template>[[item.starttijd]]</template>
             </brainy-table-column>
-            <brainy-table-column name="Eindtijd" width="45px">
-                <template>[[item.eind]]</template>
+            <brainy-table-column name="Eindtijd" width="30px">
+                <template>[[item.eindtijd]]</template>
             </brainy-table-column>
             <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'student')]]">
                 <brainy-table-column name="Docent" width="95px">
-                    <template>[[item.docent]]</template>
+                    <template>[[item.docent.naam]]</template>
                 </brainy-table-column>
             </template>
             <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'docent')]]">
@@ -134,15 +134,15 @@
         <div id="fout" class="padding">Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.</div>
 
         <!--BUTTON OM ZIEKMELDING IN TE ZENDEN-->
-        <paper-button raised on-click="_meld_ziek" class="indigo">Ziek Melden</paper-button>
+        <paper-button id="meldziek" raised on-click="_meld_ziek" class="indigo">Ziek Melden</paper-button>
         <br class="clear">
 
         <iron-ajax
-                id="ajax_vakken_ophalen"
-                method="POST"
-                url="/vakkenophalen"
+                id="ajax_lessen_ophalen"
+                method="GET"
+                url=""
                 handle-as="json"
-                on-response="_vakken_ophalen_handler">
+                on-response="_lessen_ophalen_handler">
         </iron-ajax>
 
         <iron-ajax
@@ -181,42 +181,52 @@
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_vakken_ophalen'                         /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_lessen_ophalen'                         /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    vakken: {
+                    lessen: {
                         type: Array
                     }
                 },
 
-                _vakken_ophalen: function (user, date) {
-
+                _lessen_ophalen: function (user, date) {
+                    this.lessen = [];
                     if (this.c_visible) {
-                        var ajax = this.$.ajax_vakken_ophalen;
+                        var ajax = this.$.ajax_lessen_ophalen;
+                        ajax.url="http://localhost:8080/student/getById/" + this.c_user.id;
                         ajax.contentType="application/json";
-                        ajax.body={
-                            id: this.c_user.id,
-                            date: this.c_systeemdatumstandaard
-                        };
                         ajax.generateRequest();
                     }
                     this._initializing();
-//                    var vakken = [
-//                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
-//                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
-//                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
-//                        ];
-//                    return vakken;
                 },
 
-                _vakken_ophalen_handler: function (request) {
-                    this.vakken = request.detail.response.vakken;
+                _lessen_ophalen_handler: function (request) {
+                    var alle_lessen = request.detail.response[0].lessen;
+                    var lessen_vandaag = [];
+
+                    for(var i=0; i < alle_lessen.length; i++) {
+                        if(alle_lessen[i].datum === this.c_systeemdatumstandaard) {
+                            alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);
+                            alle_lessen[i].eindtijd = alle_lessen[i].eindtijd.slice(0,5);
+                            lessen_vandaag.push(alle_lessen[i]);
+                        }
+                    }
+                    this.lessen = lessen_vandaag;
+                    if (this.lessen.length === 0) {
+                        this.$.meldziek.disabled = true;
+                        this.$.goed.style.display = "block";
+                        this.$.goed.innerText = "Je hebt geen lessen vandaag. Je hoeft je dus niet ziek te melden"
+                    }
+                    else {
+                        this.$.meldziek.disabled = false;
+                        this.$.goed.style.display = "none";
+                        this.$.goed.innerText = "Je bent ziek gemeld! Veel beterschap"
+                    }
+
                 },
 
                 _meld_ziek: function () {
-                    console.log(this.c_systeemdatumlokaal);
-                    console.log(this.c_systeemdatumstandaard);
                     var ajax = this.$.ajax_ziek_melden;
                     ajax.contentType="application/json";
                     ajax.body={

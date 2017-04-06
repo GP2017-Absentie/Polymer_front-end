@@ -180,7 +180,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <img id="toolbarlogo" src="../../images/hu_logo.png" alt="HU" />
         </app-toolbar>
         <template is="dom-if" if="[[_are_strings_equal(user.rol, 'both')]]">
-          <p class="userInfo">Gebruiker: [[user.name]]</p>
+          <p class="userInfo">Gebruiker: [[user.naam]]</p>
         </template>
           <p class="userInfo">Datum: [[_systeemdatumlokaal]]</p>
         <hr width="90%">
@@ -468,10 +468,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           user: {
               type: Object,
               value: {
-                  rol: 'docent',
-                  name: 'Timo Glastra',
-                  email: 'Timo.glastra@student.hu.nl',
-                  id: 1686664
+                  rol: 'undefined',
+                  email: "timo.glastra@student.hu.nl"
               }
           }
           },
