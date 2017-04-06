@@ -69,7 +69,7 @@
         <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
     </paper-toast>
 
-    <div class="my-title">Overzicht van medestudenten van [[c_username]]</div>
+    <div class="my-title">Overzicht van medestudenten van [[c_user.name]]</div>
     <table>
       <tr>
         <th class="voornaam">Voornaam </th>
@@ -128,19 +128,16 @@
             type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup} 
 										array is constant groepnr is changable */
           },
-          c_rol: {
-            type: String,
-          },
-          c_username: {
-            type: String,
-          },
+            c_user: {
+                type: Object
+            },
           c_visible: {
             type: Boolean,                                      /* true when element is the active visible item */
             value: false,
             observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
                                                                    regel in de functie dat er niets gebeurd
                                                                    als c_visible false is */
-          },
+          }
         },
 
         _go_home: function() {
@@ -153,7 +150,7 @@
         
         _initializing : function() {
           if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-            if (this.c_rol=="student") {                        // voor studenten
+            if (this.c_user.rol==="student") {                        // voor studenten
               this._medestudenten_ophalen_request_handler();    //    haal info op van server
             } else {                                            // na handmatige url wijziging zonder login
               var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
@@ -164,7 +161,6 @@
         },
 
         _medestudenten_ophalen_request_handler: function() {
-          console.log("_medestudenten_ophalen_request_handler user="+this.c_username);
           this.$.ajax_medestudenten_ophalen.contentType="application/json";
           this.$.ajax_medestudenten_ophalen.body={
             "username":this.c_username
@@ -173,22 +169,19 @@
         },
 
         _medestudenten_ophalen_response_handler: function(request) {
-          console.log("_mededestudenten_ophalen_response_handler aantal studenten="+request.detail.response.length);
           this._c_studenten = request.detail.response;
         },
 
         _medestudenten_opslaan_request_handler: function() {
-          console.log("_medestudenten_opslaan_request_handler user="+this.c_username);
           this.$.ajax_medestudenten_opslaan.contentType="application/json";
           this.$.ajax_medestudenten_opslaan.body={
-              "username":this.c_username,
+              "username":this.c_user.id,
               "groupMembers": this._c_studenten
           };
           this.$.ajax_medestudenten_opslaan.generateRequest();
         },
 
         _medestudenten_opslaan_response_handler: function(request) {
-          console.log("_mededestudenten_opslaan_response_handler errorcode="+request.detail.response.errorcode);
           this._go_home();		/* verlaat de pagina en ga terug naar home page */
         },
 

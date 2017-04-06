@@ -59,12 +59,12 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absent Melden</h1>
-        <paper-date-picker date="{{c_datum}}"></paper-date-picker>
+        <paper-date-picker date="{{datum}}"></paper-date-picker>
         <br>
         <div id="table">
             <section id="padding">
                 Geeft lessen weer van de geselecteerde dag</section>
-            <brainy-table items="{{c_vakken}}" page-size="5">
+            <brainy-table items="{{vakken}}" page-size="5">
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.code]]</template>
                 </brainy-table-column>
@@ -77,14 +77,13 @@
                 <brainy-table-column name="Docent" width="95px">
                     <template>[[item.docent]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Selected" flex="1" width="50px">
+                <brainy-table-column name="Absente vakken" flex="1" width="50px">
                     <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
                 </brainy-table-column>
             </brainy-table>
 
         </div>
         <paper-dropdown-input value={{reden}} label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
-        <p style="height: 300px"></p>
 
         <paper-input label="Opmerking" multiline rows="5" value="{{opmerking}}">
             <iron-icon icon="icons:create" prefix></iron-icon>
@@ -104,7 +103,7 @@
                 method="POST"
                 url="/absentmelden"
                 handle-as="json"
-                on-response="_vakken_ophalen_handler">
+                on-response="_absent_melden_handler">
         </iron-ajax>
             </template>
 
@@ -122,79 +121,66 @@
                 is: 'my-absentmelden',
 
                 properties: {
-                    _c_studenten: {
-                        type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
-                         array is constant groepnr is changable */
-                    },
-                    c_rol: {
-                        type: String,
-                    },
-                    c_username: {
-                        type: String,
-                    },
-                    c_systeemdatumlokaal: {
+                    c_systeemdatumstandaard: {
                         type: String
                     },
-                    c_datum: {
+                    datum: {
                         type: String,
                         observer: '_vakken_ophalen'
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_vakken_ophalen',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_vakken_ophalen'                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    c_vakken: {
-                        type: Array,
+                    c_user: {
+                        type: Object
+                    },
+                    vakken: {
+                        type: Array
                     },
                     reden : {
-                        type: String,
+                        type: String
                     },
                     opmerking : {
                         type: String
                     }
                 },
 
-                _vakken_ophalen: function (user, date) {
+                _vakken_ophalen: function (user, dates) {
+                    this._initializing();
                     if (this.c_visible) {
-                        var date = this.c_datum;
+                        var date = this.datum;
                         var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
 
                         var ajax = this.$.ajax_vakken_ophalen;
                         ajax.contentType="application/json";
                         ajax.body={
-                            user: this.c_username,
+                            id: this.c_user.id,
                             date: newDate
                         };
                         ajax.generateRequest();
                     }
-                    this._initializing();
-                    this.c_vakken = [
-                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler", klas: "V1D"},
-                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker", klas: "V1A"},
-                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen", klas: "V1C"}
-                        ];
-                    for(var i=0; i<this.c_vakken.length; i++) {
-                        this.c_vakken[i].checked = false;
-                    }
-
                 },
 
                 _vakken_ophalen_handler: function (request) {
-                    this.c_vakken = request.detail.response.vakken;
+                    this.vakken = request.detail.response.vakken;
+                    for(var i=0; i<this.vakken.length; i++) {
+                        this.vakken[i].checked = false;
+                    }
                 },
 
 
                 _absent_melden: function () {
                     if (this.c_visible) {
-                        var date = this.c_datum;
+                        var date = this.datum;
                         var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
                         var checked = [];
-                        for (var i=0; i < this.c_vakken.length; i++) {
-                            if (this.c_vakken[i].checked === true) {
-                                checked.push(this.c_vakken[i]);
+                        for (var i=0; i < this.vakken.length; i++) {
+                            if (this.vakken[i].checked === true) {
+                                checked.push(this.vakken[i].id);
                             }
                         }
                         var reden = this.reden;
@@ -204,17 +190,16 @@
                             var ajax = this.$.ajax_vakken_ophalen;
                             ajax.contentType = "application/json";
                             ajax.body = {
-                                user: this.c_username,
-                                date: newDate
+                                id: this.c_user.id,
+                                lessen: this.checked
                             };
-                            //ajax.generateRequest();
+                            ajax.generateRequest();
                         }
-                        else console.log("Bevat fouten")
                     }
                 },
 
                 _absent_melden_handler: function (request) {
-                    this.c_vakken = request.detail.response.vakken;
+                    //message sturen dat het geslaagd is of niet
                 },
 
                 _go_home: function() {
@@ -226,8 +211,8 @@
                 },
 
                 _initializing : function() {
-                    if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_rol==="student" || this.c_rol==="docent") {                        // voor studenten
+                    if (this.c_visible) {// zodra zichtbaar geworden moet er wat worden gedaan
+                        if (this.c_user.rol==="student" || this.c_user.rol==="docent") {                        // voor studenten
                            //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep

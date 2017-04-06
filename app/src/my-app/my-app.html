@@ -74,7 +74,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding: 0 16px;
         text-decoration: none;
         color: black;
-        line-height: 40px;
+        line-height: 20px;
       }
 
       .drawer-list a.iron-selected {            
@@ -179,8 +179,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar class="toolbar">
           <img id="toolbarlogo" src="../../images/hu_logo.png" alt="HU" />
         </app-toolbar>
-        <p class="userInfo">Gebruiker: [[_username]]<br>
-          Datum: [[_systeemdatumlokaal]]</p>
+        <template is="dom-if" if="[[_are_strings_equal(user.rol, 'both')]]">
+          <p class="userInfo">Gebruiker: [[user.name]]</p>
+        </template>
+          <p class="userInfo">Datum: [[_systeemdatumlokaal]]</p>
         <hr width="90%">
         <iron-selector selected="[[_ar_page]]" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="home" href$="[[_c_baseURL]]">
@@ -194,32 +196,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </a>
 
           <!-- beschikbaar voor docent/student---------------------------------------------------- -->
-          <a name="absentmelden" href$="[[_c_baseURL]]absentmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="absentmelden" href$="[[_c_baseURL]]absentmelden"  verborgen$="[[!_are_strings_equal(user.rol, 'both')]]">
             <iron-icon icon="icons:update"></iron-icon>
             <span>Absent Melden</span>
           </a>
 
-          <a name="ziekmelden" href$="[[_c_baseURL]]ziekmelden"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="ziekmelden" href$="[[_c_baseURL]]ziekmelden"  verborgen$="[[!_are_strings_equal(user.rol, 'both')]]">
             <iron-icon icon="maps:local-hospital"></iron-icon>
             <span>Ziek Melden</span>
           </a>
 
-          <a name="absentieoverzicht" href$="[[_c_baseURL]]absentieoverzicht"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="absentieoverzicht" href$="[[_c_baseURL]]absentieoverzicht"  verborgen$="[[!_are_strings_equal(user.rol, 'both')]]">
             <iron-icon icon="editor:pie-chart"></iron-icon>
             <span>Absentie Overzicht</span>
           </a>
 
-          <a name="statistiekeninzien" href$="[[_c_baseURL]]statistiekeninzien"  verborgen$="[[!_are_strings_equal(_rol, 'both')]]">
+          <a name="statistiekeninzien" href$="[[_c_baseURL]]statistiekeninzien"  verborgen$="[[!_are_strings_equal(user.rol, 'both')]]">
             <iron-icon icon="editor:insert-chart"></iron-icon>
             <span>Statistieken Inzien</span>
           </a>
           <!-- beschikbaar voor docent---------------------------------------------------- -->
-          <a name="docent_absentieopnemen" href$="[[_c_baseURL]]docent/absentieopnemen"  verborgen$="[[!_are_strings_equal(_rol, 'docent')]]">
+          <a name="docent_absentieopnemen" href$="[[_c_baseURL]]docent/absentieopnemen"  verborgen$="[[!_are_strings_equal(user.rol, 'docent')]]">
             <iron-icon icon="social:person-add"></iron-icon>
             <span>Absentie Opnemen</span>
           </a>
           <!-- beschikbaar voor student--------------------------------------------------- -->
-          <a name="student_medestudenten" href$="[[_c_baseURL]]student/medestudenten"  verborgen$="[[!_are_strings_equal(_rol, 'student')]]">
+          <a name="student_medestudenten" href$="[[_c_baseURL]]student/medestudenten"  verborgen$="[[!_are_strings_equal(user.rol, 'student')]]">
             <iron-icon icon="social:group"></iron-icon>
             <span>Toon medestudenten</span>
           </a>
@@ -236,11 +238,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div class="loginuit">
         <iron-selector selected="[[_ar_page]]" attr-for-selected="name" class="toolbar-nav" role="navigation">
 
-          <a name="login" href$="[[_c_baseURL]]login"  verborgen$="[[!_are_strings_equal(_rol, 'undefined')]]">
+          <a name="login" href$="[[_c_baseURL]]login"  verborgen$="[[!_are_strings_equal(user.rol, 'undefined')]]">
             <span>Inloggen</span>
           </a>
 
-          <a name="logout" href$="[[_c_baseURL]]logout"  verborgen$="[[_are_strings_equal(_rol, 'undefined')]]">
+          <a name="logout" href$="[[_c_baseURL]]logout"  verborgen$="[[_are_strings_equal(user.rol, 'undefined')]]">
             <span>Uitloggen</span>
           </a>
 
@@ -293,7 +295,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               	   title="LOGIN"
               	   element$="my-login">
             <paper-material elevation="1" style="max-width: 380px;">'
-              <my-login username="{{_username}}" rol="{{_rol}}" ></my-login>
+              <my-login user="{{user}}" ></my-login>
             </paper-material>
           </section>
 
@@ -301,7 +303,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                    title="UITLOGGEN"
                    element="my-logout">
             <paper-material elevation="1">
-              <my-logout rol="{{_rol}}"></my-logout>
+              <my-logout user="{{user}}"></my-logout>
             </paper-material>
           </section>
 
@@ -312,9 +314,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-material elevation="1">
             <my-absentieopnemen
                     c_visible="[[_are_strings_equal(_ar_page, 'docent_absentieopnemen')]]"
-                    c_rol="[[_rol]]"
-                    c_username="[[_username]]"
-              c_systeemdatumlokaal="[[_systeemdatumlokaal]]">
+                    c_user="[[user]]"
+                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]">
             </my-absentieopnemen>
           </paper-material>
         </section>
@@ -331,9 +332,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             -->
             <my-ziekmelden
                     c_visible="[[_are_strings_equal(_ar_page, 'ziekmelden')]]"
-                    c_rol="[[_rol]]"
-                    c_username="[[_username]]"
-                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]">
+                    c_user = "[[user]]"
+                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]"
+                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]">
             </my-ziekmelden>
           </paper-material>
         </section>
@@ -344,9 +345,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-material elevation="1">
             <my-absentmelden
                     c_visible="[[_are_strings_equal(_ar_page, 'absentmelden')]]"
-                    c_rol="[[_rol]]"
-                    c_username="[[_username]]"
-                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]">
+                    c_user = "[[user]]"
+                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]"
+                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]">
             </my-absentmelden>
           </paper-material>
         </section>
@@ -356,8 +357,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-material elevation="1">
             <my-absentieoverzicht
                     c_visible="[[_are_strings_equal(_ar_page, 'absentieoverzicht')]]"
-                    c_rol="[[_rol]]"
-                    c_username="[[_username]]">
+                    c_user = "[[user]]"
+                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]"
+                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]">
             </my-absentieoverzicht>
           </paper-material>
         </section>
@@ -367,8 +369,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-material elevation="1">
             <my-statistiekeninzien
                     c_visible="[[_are_strings_equal(_ar_page, 'statistiekeninzien')]]"
-                    c_rol="[[_rol]]"
-                    c_username="[[_username]]">
+                    c_user = "[[user]]"
+                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]"
+                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]">
             </my-statistiekeninzien>
           </paper-material>
         </section>
@@ -386,8 +389,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               -->
               <my-medestudenten
                 c_visible="[[_are_strings_equal(_ar_page, 'student_medestudenten')]]"
-                c_rol="[[_rol]]"
-                c_username="[[_username]]">
+                c_user = "[[user]]">
               </my-medestudenten>
             </paper-material>
           </section>
@@ -425,62 +427,64 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         properties: {
           _c_baseURL: {
             type: String,
-            value: "/#/",                          
-          },
-          _rol: {
-            type: String,
-            value: "docent",  		//zodat login zichtbaar wordt
+            value: "/#/"
           },
           _ar_page: {
             type: String,
             reflectToAttribute: true,
-            value: "",
+            value: ""
           },
           _ar_route: {                  //route-object betreffende deel 1 van de URL vanwege pattern "/"
-            type: Object,
+            type: Object
           },
           _ar_route_data: {                 
-            type: Object,               //{page: "xxx"} met xxx url-deel1
+            type: Object               //{page: "xxx"} met xxx url-deel1
           },
           _ar_selected_object: {
             type: Object,               //active section
                                         //.element=xxx met xxx is de naam van het polymer element
                                         //.title=yyyy  met yyy is de title voor in de header
-            observer: '_ar_selected_object_changed',
+            observer: '_ar_selected_object_changed'
           },
           _ar_subroute: {							
-            type: Object,				//route-object dat niet matched vanuit <_ar_route> dwz alles na /xxx/ in de url
+            type: Object				//route-object dat niet matched vanuit <_ar_route> dwz alles na /xxx/ in de url
           },
           _ar_subroute_data: {                           
-            type: Object,               //{subpage: "yyy"} dat matched na /xxx/ in de url
+            type: Object               //{subpage: "yyy"} dat matched na /xxx/ in de url
           },
           _ar_subsubroute: {                           
-            type: Object,               //route-object dat niet matched vanuit <_ar_subroute> dwz alles na /xxx/yyy/ in de url
+            type: Object               //route-object dat niet matched vanuit <_ar_subroute> dwz alles na /xxx/yyy/ in de url
           },
           _ar_subsubroute_data: {                           
-              type: Object,             //{subsubpage: "zzz"} dat matched na /xxx/yyy/ in de url
+              type: Object            //{subsubpage: "zzz"} dat matched na /xxx/yyy/ in de url
           },
          _systeemdatumlokaal: {		//used as global in many element
-            type: String,
+            type: String
           },
           _systeemdatumstandaard: {		
-            type: String,
+            type: String
           },
-          _username: {		
-            type: String,
+
+          user: {
+              type: Object,
+              value: {
+                  rol: 'docent',
+                  name: 'Timo Glastra',
+                  email: 'Timo.glastra@student.hu.nl',
+                  id: 1686664
+              }
+          }
           },
-        },  //end of properties
-         
         observers: [
           '_ar_route_data_page_changed(_ar_route_data.page)',
-          '_ar_subroute_data_subpage_changed(_ar_subroute_data.subpage)',
+          '_ar_subroute_data_subpage_changed(_ar_subroute_data.subpage)'
         ],
         
         _ar_route_data_page_changed: function(pNewPage) {
           if (!this.$.drawer.persistent) {
             this.$.drawer.close();
           }
-          if ((pNewPage == "") || (pNewPage == undefined)){
+          if ((pNewPage === "") || (pNewPage === undefined)){
               this._ar_page = "home";
             } else {
               this._ar_page = pNewPage;         
@@ -489,17 +493,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
          
          _ar_selected_object_changed: function(pSelectedObject) {
           // Load page import on demand. Show 404 page if fails
-          if (pSelectedObject == undefined) {
+          if (pSelectedObject === undefined) {
             //no element to load
             return
           }
           var lAttributeNode = pSelectedObject.attributes["element$"];
-          if (lAttributeNode== undefined) {
+          if (lAttributeNode === undefined) {
               //no element to load
               return
           }
           var lElementName = lAttributeNode.nodeValue;
-          if (lElementName== "none") {
+          if (lElementName=== "none") {
               //no element to load
               return
          }
@@ -511,8 +515,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this._ar_page = 'view404';
         },
 
-        _ar_subroute_data_subpage_changed(pNewSubpage) {
-          if ((pNewSubpage == "") || (pNewSubpage == undefined)){
+        _ar_subroute_data_subpage_changed: function(pNewSubpage) {
+          if ((pNewSubpage === "") || (pNewSubpage === undefined)){
         	 // nothing to do 
           } else {
             this._ar_page =this._ar_route_data.page + "_" + pNewSubpage;
@@ -528,7 +532,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 	        if(p_str2 === 'both'&& p_str1 !== 'undefined')
 	            return true;
 	      //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
-	      return (p_str1==p_str2);
+	      return (p_str1===p_str2);
 	    },
 	    
 	    ready: function()  {
@@ -541,7 +545,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 		  var eenDatumObject             = new Date(); // is vandaag
 		  this._systeemdatumstandaard    = this.date_to_standaard_string(eenDatumObject);
 		  this._systeemdatumlokaal       = eenDatumObject.toLocaleDateString();
-		  console.log("application ready to run");
         },
 	      
          // convert a JSDate-object to standaard format (=YYYY-MM-DD)
@@ -551,24 +554,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var lDag = p_JSDate.getDate();
 
           var lMaandStr = lMaand.toString();
-          if (lMaandStr.length == 1) {
+          if (lMaandStr.length === 1) {
             lMaandStr = "0"+ lMaandStr;
           }
           var lDagStr = lDag.toString();
-          if (lDagStr.length == 1) {
+          if (lDagStr.length === 1) {
             lDagStr = "0"+ lDagStr;
           }
-          var lString =
-            lJaar.toString() + "-" +
+          return lJaar.toString() + "-" +
             lMaandStr + "-" +
             lDagStr;
-          return lString;
         },
       
 	    // convert a YY-MM-DD string to local format (dutch lokaal: DD-MM-YYYY)
 	    standaarddatumstring_to_lokaledatumstring: function(p_standaarddatumstring) {
 	      var lokaledatumstring = "";
-	      if (p_standaarddatumstring !="") {
+	      if (p_standaarddatumstring !== "") {
 	        /* gebruikt het Javascript date object om op basis van een standaarddatumstring
 	           een object te maken en via dit een lokaledatumstring te maken */
 	        var eenDatumObject = new Date(p_standaarddatumstring);
@@ -576,7 +577,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 	        /*deze conversie werk zowel voor nederlandse windows als internationale windows. */
 	      }
 	      return lokaledatumstring;
-        },
+        }
       
       });
 

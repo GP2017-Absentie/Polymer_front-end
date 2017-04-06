@@ -52,15 +52,8 @@
                 is: 'my-statistiekeninzien',
 
                 properties: {
-                    _c_studenten: {
-                        type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
-                         array is constant groepnr is changable */
-                    },
-                    c_rol: {
-                        type: String,
-                    },
-                    c_username: {
-                        type: String,
+                    c_user: {
+                        type: Object
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
@@ -68,7 +61,7 @@
                         observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
-                    },
+                    }
                 },
 
                 _go_home: function() {
@@ -81,7 +74,7 @@
 
                 _initializing : function() {
                     if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_rol=="student" || this.c_rol=="docent") {                        // voor studenten
+                        if (this.c_user.rol==="student" || this.c_user.rol==="docent") {                        // voor studenten
                             //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep

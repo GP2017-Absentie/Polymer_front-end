@@ -1,6 +1,6 @@
 
 <!----------------------------------------------------IMPORTS---------------------------------------------------------->
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html" xmlns="">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
@@ -77,11 +77,11 @@
 
         <!--PAGINA HEADER-->
         <h2>Ziek Melden</h2>
-        <p>Welkom [[c_username]],<br>
+        <p>Welkom [[c_user.name]],<br>
            Hier kan je je ziek melden voor vandaag ([[c_systeemdatumlokaal]])</p>
 
         <!--NAAM VAN GEBRUIKER, READONLY-->
-        <paper-input label="Gebruikersnaam" readonly value="[[c_username]]">
+        <paper-input label="Gebruiker" readonly value="[[c_user.name]]">
             <iron-icon id="icon" icon="social:person" prefix></iron-icon>
         </paper-input>
 
@@ -92,13 +92,13 @@
 
         <!--TABELUITLEG, VERSCHILLEND VOOR DOCENT EN STUDENT-->
         <!--IF ROL IS DOCENT-->
-        <template is="dom-if" if="[[_are_strings_equal(c_rol, 'docent')]]">
+        <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'docent')]]">
             <section class="padding">Dit zijn de lessen die je vandaag zal missen door je afwezigheid.
                                      De studenten worden automatisch op de hoogste gesteld van je afwezigheid
             </section>
         </template>
         <!--IF ROL IS STUDENT-->
-        <template is="dom-if" if="[[_are_strings_equal(c_rol, 'student')]]">
+        <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'student')]]">
             <section class="padding">Dit zijn de vakken die je vandaag zal missen door je afwezigheid.
                                      Je moet zelf met de docent een oplossing zoeken voor eventuele
                                      gemiste verplichtingen
@@ -106,7 +106,7 @@
         </template>
 
         <!--TABEL MET ALLE LESSEN VAN "VANDAAG"-->
-        <brainy-table id="table" items="[[c_vakken]]" page-size="5">
+        <brainy-table id="table" items="[[vakken]]" page-size="5">
             <brainy-table-column name="Cursuscode" width="45px">
                 <template>[[item.code]]</template>
             </brainy-table-column>
@@ -116,12 +116,12 @@
             <brainy-table-column name="Eindtijd" width="45px">
                 <template>[[item.eind]]</template>
             </brainy-table-column>
-            <template is="dom-if" if="[[_are_strings_equal(c_rol, 'student')]]">
+            <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'student')]]">
                 <brainy-table-column name="Docent" width="95px">
                     <template>[[item.docent]]</template>
                 </brainy-table-column>
             </template>
-            <template is="dom-if" if="[[_are_strings_equal(c_rol, 'docent')]]">
+            <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'docent')]]">
                 <brainy-table-column name="Klas" width="95px">
                     <template>[[item.klas]]</template>
                 </brainy-table-column>
@@ -169,15 +169,14 @@
                 is: 'my-ziekmelden',
 
                 properties: {
-                    c_rol: {
-                        type: String,
-                    },
-                    c_username: {
-                        type: String,
+                    c_user: {
+                        type: Object
                     },
                     c_systeemdatumlokaal: {
-                        type: String,
-
+                        type: String
+                    },
+                    c_systeemdatumstandaard: {
+                        type: String
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
@@ -186,19 +185,19 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    c_vakken: {
-                        type: Array,
-//                        computed: "_vakken_ophalen(c_username, c_systeemdatumlokaal)"
-                    },
+                    vakken: {
+                        type: Array
+                    }
                 },
 
                 _vakken_ophalen: function (user, date) {
+
                     if (this.c_visible) {
                         var ajax = this.$.ajax_vakken_ophalen;
                         ajax.contentType="application/json";
                         ajax.body={
-                            user: this.c_username,
-                            date: this.c_systeemdatumlokaal
+                            id: this.c_user.id,
+                            date: this.c_systeemdatumstandaard
                         };
                         ajax.generateRequest();
                     }
@@ -212,15 +211,17 @@
                 },
 
                 _vakken_ophalen_handler: function (request) {
-                    this.c_vakken = request.detail.response.vakken;
+                    this.vakken = request.detail.response.vakken;
                 },
 
                 _meld_ziek: function () {
+                    console.log(this.c_systeemdatumlokaal);
+                    console.log(this.c_systeemdatumstandaard);
                     var ajax = this.$.ajax_ziek_melden;
                     ajax.contentType="application/json";
                     ajax.body={
-                        user: this.c_username,
-                        date: this.c_systeemdatumlokaal
+                        id: this.c_user.id,
+                        date: this.c_systeemdatumstandaard
                     };
                     ajax.generateRequest();
                     this.$.fout.style.display = "block";
@@ -243,12 +244,12 @@
                     if(p_str2 === 'both'&& p_str1 !== 'undefined')
                         return true;
                     //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
-                    return (p_str1==p_str2);
+                    return (p_str1===p_str2);
                 },
 
                 _initializing : function() {
                     if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_rol=="student" || this.c_rol=="docent") {                        // voor studenten
+                        if (this.c_user.rol==="student" || this.c_user.rol==="docent") {                        // voor studenten
                             //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
@@ -264,7 +265,7 @@
                     var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                     lToast.toggle();
                     this._go_home();
-                },
+                }
 
             });
         })();

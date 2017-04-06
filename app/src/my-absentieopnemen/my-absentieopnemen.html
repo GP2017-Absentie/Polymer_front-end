@@ -49,13 +49,13 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absentie Opnemen</h1>
-        <paper-input label="Datum" readonly value="[[c_systeemdatumlokaal]]">
+        <paper-input label="Datum" readonly value="[[c_systeemdatumstandaard]]">
             <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
         </paper-input>
         <div id="table">
             <section id="padding">
                 Dagrooster</section>
-            <brainy-table items="[[c_vakken]]" page-size="5">
+            <brainy-table items="[[vakken]]" page-size="5">
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.code]]</template>
                 </brainy-table-column>
@@ -65,30 +65,27 @@
                 <brainy-table-column name="Eindtijd" width="45px">
                     <template>[[item.eind]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Docent" width="95px">
-                    <template>[[item.docent]]</template>
+                <brainy-table-column name="Klas" width="95px">
+                    <template>[[item.klas]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Selecteer Les" width="50px">
-                    <template><input type="radio" name="vak" value="[[item.code]]"></template>
+                    <template><input type="radio" name="vak" value="[[item.id]]"></template>
                 </brainy-table-column>
             </brainy-table>
             <br>
             <section id="padding1">
                 Studentenlijst</section>
-            <brainy-table items="[[c_leerlingenpervak]]" page-size="5">
+            <brainy-table items="[[leerlingenpervak]]" page-size="5">
                 <brainy-table-column name="Studentnummer" width="45px">
-                    <template>[[item.code]]</template>
+                    <template>[[item.id]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Voornaam" width="45px">
-                    <template>[[item.voornaam]]</template>
+                <brainy-table-column name="Naam" sort-by="naam" width="80px">
+                    <template>[[item.name]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Achternaam" width="45px">
-                    <template>[[item.achternaam]]</template>
-                </brainy-table-column>
-                <brainy-table-column name="Selected" flex="1" width="50px">
+                <brainy-table-column name="Absent" flex="1" width="50px">
                     <template><paper-checkbox checked="{{expanded}}">Absent</paper-checkbox></template>
                 </brainy-table-column>
-                <brainy-table-column name="Selected" flex="1" width="50px">
+                <brainy-table-column name="Te laat" flex="1" width="50px">
                     <template><paper-checkbox checked="{{expanded}}">Te laat</paper-checkbox></template>
                 </brainy-table-column>
             </brainy-table>
@@ -110,18 +107,8 @@
                 is: 'my-absentieopnemen',
 
                 properties: {
-                    _c_studenten: {
-                        type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
-                         array is constant groepnr is changable */
-                    },
-                    c_rol: {
-                        type: String,
-                    },
-                    c_username: {
-                        type: String,
-                    },
-                    c_systeemdatumlokaal: {
-                        type: String,
+                    c_systeemdatumstandaard: {
+                        type: String
 
                     },
                     c_visible: {
@@ -131,7 +118,7 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    c_vakken: {
+                    vakken: {
                         type: Array,
                         value: [
                             {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
@@ -139,16 +126,18 @@
                             {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
                         ]
                     },
-                    c_leerlingenpervak: {
+                    leerlingenpervak: {
                         type: Array,
                         value: [
                             {code: "5677", voornaam: "Timo", achternaam: "Glastra"},
                             {code: "5435", voornaam: "Karim", achternaam: "Stekelenburg"},
                             {code: "1235", voornaam: "Owen", achternaam: "Ashby"}]
 
+                    },
+                    c_user: {
+                        type: Object
                     }
                 },
-
                 _go_home: function() {
                     var lApp = document.querySelector('my-app');  //het polymer element <my-app>
                     var lAppRouter = lApp.$.approuter;            // het html-element <app-route> met id=approuter
@@ -156,10 +145,9 @@
                                                                   // door de two way binding in <app-route> en <app-location>
                                                                   // zal ook de url echt wijzigen
                 },
-
                 _initializing : function() {
                     if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_rol=="docent") {                        // voor studenten
+                        if (this.c_user.rol==="docent") {                        // voor studenten
                             //doe iets   //    haal info op van server
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
@@ -168,11 +156,17 @@
                         }
                     }
                 },
+                _are_strings_equal: function(p_str1, p_str2) {
+                    if(p_str2 === 'both'&& p_str1 !== 'undefined')
+                        return true;
+                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
+                    return (p_str1===p_str2);
+                },
                 _toast_clicked: function(e) {
                     var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                     lToast.toggle();
                     this._go_home();
-                },
+                }
 
             });
         })();

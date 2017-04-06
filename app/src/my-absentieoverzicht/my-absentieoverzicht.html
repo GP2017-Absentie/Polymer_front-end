@@ -51,7 +51,7 @@
         <div id="table">
             <section id="padding">
                 Verleden absenties</section>
-            <brainy-table items="[[c_verledenabsentie]]" page-size="5">
+            <brainy-table items="[[absenties]]" page-size="5">
                 <brainy-table-column name="Datum" width="45px">
                     <template>[[item.datum]]</template>
                 </brainy-table-column>
@@ -66,7 +66,7 @@
             <div id="table1">
                 <section id="padding1">
                     Komende absenties</section>
-                <brainy-table items="[[c_verledenabsentie]]" page-size="5">
+                <brainy-table items="[[absenties]]" page-size="5">
                     <brainy-table-column name="Datum" width="45px">
                         <template>[[item.datum]]</template>
                     </brainy-table-column>
@@ -94,24 +94,17 @@
                 is: 'my-absentieoverzicht',
 
                 properties: {
-                    _c_studenten: {
-                        type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
-                         array is constant groepnr is changable */
-                    },
-                    c_rol: {
-                        type: String,
-                    },
-                    c_username: {
-                        type: String,
+                    c_user: {
+                        type: Object
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_initializing'                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    c_verledenabsentie: {
+                    absenties: {
                         type: Array,
                         value: [
                             {datum: "28-01-2017", absentie: "Ziek", vak: "OODC"},
@@ -131,7 +124,7 @@
 
                 _initializing : function() {
                     if (this.c_visible) {                                 // zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_rol=="student" || this.c_rol=="docent") {                        // voor studenten
+                        if (this.c_user.rol==="student" || this.c_user.rol==="docent") {                        // voor studenten
                             //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
@@ -145,7 +138,7 @@
                     var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                     lToast.toggle();
                     this._go_home();
-                },
+                }
 
             });
         })();
