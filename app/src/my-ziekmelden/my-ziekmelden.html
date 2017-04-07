@@ -148,7 +148,7 @@
         <iron-ajax
                 id="ajax_ziek_melden"
                 method="POST"
-                url="/ziekmelden"
+                url="http://localhost:8080/absentie/meldZiek"
                 handle-as="json"
                 on-response="_meld_ziek_handler">
         </iron-ajax>
@@ -230,16 +230,16 @@
                     var ajax = this.$.ajax_ziek_melden;
                     ajax.contentType="application/json";
                     ajax.body={
-                        id: this.c_user.id,
-                        date: this.c_systeemdatumstandaard
+                        "persoonId": this.c_user.id,
+                        "datum": this.c_systeemdatumstandaard
                     };
                     ajax.generateRequest();
-                    this.$.fout.style.display = "block";
                 },
 
                 _meld_ziek_handler: function (request) {
-                    //response krijgen dat het goed gegaan is of niet. Indien goed:
-
+                    if (request.detail.status === 200) {
+                        this.$.goed.style
+                    }
                 },
 
                 _go_home: function() {
