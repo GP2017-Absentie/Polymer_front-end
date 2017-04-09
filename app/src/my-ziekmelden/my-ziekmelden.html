@@ -238,7 +238,10 @@
 
                 _meld_ziek_handler: function (request) {
                     if (request.detail.status === 200) {
-                        this.$.goed.style
+                        this.$.goed.style.display = "block";
+                    }
+                    else {
+                        this.$.fout.style.display = "block";
                     }
                 },
 

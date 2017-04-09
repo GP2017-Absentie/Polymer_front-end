@@ -51,6 +51,28 @@
                 width: 90%;
 
             }
+            .padding {
+                padding: 15px;
+                text-align: center;
+            }
+            #goed {
+                background-color: #a9ff8c;
+                display: none;
+                border-radius: 0 0 8px 8px;
+                margin: 0 1px;
+            }
+            #fout {
+                background-color: rgba(255, 83, 66, 0.58);
+                display: none;
+                border-radius: 0 0 8px 8px;
+                margin: 0 1px;
+            }
+            #meldabsent {
+                float: right;
+            }
+            .clear {
+                clear: both;
+            }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -64,48 +86,52 @@
         <div id="table">
             <section id="padding">
                 Geeft lessen weer van de geselecteerde dag</section>
-            <brainy-table items="{{vakken}}" page-size="5">
+            <brainy-table items="{{lessen}}" page-size="5">
                 <brainy-table-column name="Cursuscode" width="45px">
-                    <template>[[item.code]]</template>
+                    <template>[[item.vakCode]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Starttijd" width="45px">
-                    <template>[[item.start]]</template>
+                    <template>[[item.starttijd]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Eindtijd" width="45px">
-                    <template>[[item.eind]]</template>
+                    <template>[[item.eindtijd]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Docent" width="95px">
-                    <template>[[item.docent]]</template>
+                    <template>[[item.docent.naam]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Absente vakken" flex="1" width="50px">
                     <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
                 </brainy-table-column>
             </brainy-table>
 
+            <!--MESSAGES NA INZENDEN ABSENTMELDING, GOED OF FOUT-->
+            <div id="goed" class="padding">Je bent absent gemeld!</div>
+            <div id="fout" class="padding">Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.</div>
         </div>
         <paper-dropdown-input value={{reden}} label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
 
         <paper-input label="Opmerking" multiline rows="5" value="{{opmerking}}">
             <iron-icon icon="icons:create" prefix></iron-icon>
         </paper-input>
-        <paper-button raised on-click="_absent_melden" class="indigo">Absentie doorgeven</paper-button>
+        <paper-button id="meldabsent" raised on-click="_absent_melden" class="indigo">Absentie doorgeven</paper-button>
+        <br class="clear">
 
         <iron-ajax
-                id="ajax_vakken_ophalen"
-                method="POST"
-                url="/vakkenophalen"
+                id="ajax_lessen_ophalen"
+                method="GET"
+                url=""
                 handle-as="json"
-                on-response="_vakken_ophalen_handler">
+                on-response="_lessen_ophalen_handler">
         </iron-ajax>
 
         <iron-ajax
                 id="ajax_absent_melden"
                 method="POST"
-                url="/absentmelden"
+                url="http://localhost:8080/absentie/meldAbsent"
                 handle-as="json"
                 on-response="_absent_melden_handler">
         </iron-ajax>
-            </template>
+    </template>
 
 
 
@@ -126,19 +152,22 @@
                     },
                     datum: {
                         type: String,
-                        observer: '_vakken_ophalen'
+                        observer: '_lessen_vandaag'
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_vakken_ophalen'                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_lessen_ophalen'                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
                     c_user: {
                         type: Object
                     },
-                    vakken: {
+                    lessen: {
+                        type: Array
+                    },
+                    alle_lessen: {
                         type: Array
                     },
                     reden : {
@@ -149,57 +178,102 @@
                     }
                 },
 
-                _vakken_ophalen: function (user, dates) {
-                    this._initializing();
+                _lessen_ophalen: function (user, date) {
+                    this.alle_lessen = [];
                     if (this.c_visible) {
-                        var date = this.datum;
-                        var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
-
-                        var ajax = this.$.ajax_vakken_ophalen;
+                        var ajax = this.$.ajax_lessen_ophalen;
+                        ajax.url="http://localhost:8080/student/getById/" + this.c_user.id;
                         ajax.contentType="application/json";
-                        ajax.body={
-                            id: this.c_user.id,
-                            date: newDate
-                        };
                         ajax.generateRequest();
                     }
+                    this._initializing();
                 },
 
-                _vakken_ophalen_handler: function (request) {
-                    this.vakken = request.detail.response.vakken;
-                    for(var i=0; i<this.vakken.length; i++) {
-                        this.vakken[i].checked = false;
+                _lessen_ophalen_handler: function (request) {
+                    var alle_lessen = request.detail.response[0].lessen;
+
+                    for(var i=0; i < alle_lessen.length; i++) {
+                        alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);
+                        alle_lessen[i].eindtijd = alle_lessen[i].eindtijd.slice(0,5);
+                        alle_lessen[i].checked = false;
+                    }
+                    this.alle_lessen = alle_lessen;
+
+                    this._lessen_vandaag();
+                },
+
+                _lessen_vandaag: function () {
+                    if (this.c_visible) {
+                        this.lessen = [];
+                        var lessen_vandaag = [];
+                        var date = this.datum.toISOString().slice(0,10);
+
+                        for (var i = 0; i < this.alle_lessen.length; i++) {
+                            if (this.alle_lessen[i].datum === date) {
+                                lessen_vandaag.push(this.alle_lessen[i]);
+                            }
+                        }
+
+                        this.lessen = lessen_vandaag;
+
+                        if (this.lessen.length === 0) {
+                            this.$.meldabsent.disabled = true;
+                            this.$.goed.style.display = "block";
+                            this.$.goed.innerText = "Je hebt geen lessen op deze dag. Je hoeft je dus niet absent te melden"
+                        }
+                        else {
+                            this.$.meldabsent.disabled = false;
+                            this.$.goed.style.display = "none";
+                            this.$.goed.innerText = "Je bent absent gemeld!"
+                        }
                     }
                 },
-
 
                 _absent_melden: function () {
                     if (this.c_visible) {
-                        var date = this.datum;
-                        var newDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+                        this.$.fout.style.display = "none";
+                        this.$.goed.style.display = "none";
+                        var date = this.datum.toISOString().slice(0,10);
                         var checked = [];
-                        for (var i=0; i < this.vakken.length; i++) {
-                            if (this.vakken[i].checked === true) {
-                                checked.push(this.vakken[i].id);
+                        for (var i=0; i < this.lessen.length; i++) {
+                            if (this.lessen[i].checked === true) {
+                                checked.push(this.lessen[i].id);
                             }
                         }
                         var reden = this.reden;
                         var opmerking = this.opmerking;
 
-                        if(newDate !== null && checked.length !== 0 && reden !== null && ((reden === "Overig" && opmerking.length !== 0) || reden !== "Overig")) {
-                            var ajax = this.$.ajax_vakken_ophalen;
+                        if(date !== null && checked.length !== 0 && reden !== null && ((reden === "Overig" && opmerking.length !== 0) || reden !== "Overig")) {
+                            this.$.fout.style.display = "none";
+                            this.$.fout.innerText = "Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.";
+                            var ajax = this.$.ajax_absent_melden;
                             ajax.contentType = "application/json";
-                            ajax.body = {
-                                id: this.c_user.id,
-                                lessen: this.checked
-                            };
-                            ajax.generateRequest();
+                            for (var j=0; j < checked.length; j++) {
+                                ajax.body = {
+                                    "reden": reden,
+                                    "toelichting": opmerking,
+                                    "persoonId": this.c_user.id,
+                                    "lesId": checked[j]
+
+                                };
+                                ajax.generateRequest();
+                            }
+
+                        }
+                        else {
+                            this.$.fout.innerText = "Niet alle velden zijn correct ingevuld!";
+                            this.$.fout.style.display = "block";
                         }
                     }
                 },
 
                 _absent_melden_handler: function (request) {
-                    //message sturen dat het geslaagd is of niet
+                    if (request.detail.status === 200) {
+                        this.$.goed.style.display = "block";
+                    }
+                    else {
+                        this.$.fout.style.display = "block";
+                    }
                 },
 
                 _go_home: function() {
@@ -213,7 +287,7 @@
                 _initializing : function() {
                     if (this.c_visible) {// zodra zichtbaar geworden moet er wat worden gedaan
                         if (this.c_user.rol==="student" || this.c_user.rol==="docent") {                        // voor studenten
-                           //doe iets
+                            //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                             lToast.open();                                    /* het sluiten van deze error verwijst  */
