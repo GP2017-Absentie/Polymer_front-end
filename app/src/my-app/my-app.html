@@ -315,7 +315,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <my-absentieopnemen
                     c_visible="[[_are_strings_equal(_ar_page, 'docent_absentieopnemen')]]"
                     c_user="[[user]]"
-                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]">
+                    c_systeemdatumstandaard="[[_systeemdatumstandaard]]"
+                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]">
             </my-absentieopnemen>
           </paper-material>
         </section>
@@ -468,11 +469,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           user: {
               type: Object,
               value: {
-                  rol: 'student',
-                  email: "timo.glastra@student.hu.nl",
-                  naam: "Timo Glastra",
-                  id: 1686664,
-                  klas: "V1D"
+                  rol: 'docent',
+                  email: "peter.schuler@hu.nl",
+                  naam: "Peter Schuler",
+                  id: 8,
               }
           }
           },

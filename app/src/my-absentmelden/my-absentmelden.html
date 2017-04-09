@@ -87,6 +87,9 @@
             <section id="padding">
                 Geeft lessen weer van de geselecteerde dag</section>
             <brainy-table items="{{lessen}}" page-size="5">
+                <brainy-table-column name="Absente vakken" flex="1" width="50px">
+                    <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
+                </brainy-table-column>
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.vakCode]]</template>
                 </brainy-table-column>
@@ -99,9 +102,7 @@
                 <brainy-table-column name="Docent" width="95px">
                     <template>[[item.docent.naam]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Absente vakken" flex="1" width="50px">
-                    <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
-                </brainy-table-column>
+
             </brainy-table>
 
             <!--MESSAGES NA INZENDEN ABSENTMELDING, GOED OF FOUT-->
@@ -127,7 +128,7 @@
         <iron-ajax
                 id="ajax_absent_melden"
                 method="POST"
-                url="http://localhost:8080/absentie/meldAbsent"
+                url="http://localhost:8080/absentie"
                 handle-as="json"
                 on-response="_absent_melden_handler">
         </iron-ajax>
@@ -182,7 +183,7 @@
                     this.alle_lessen = [];
                     if (this.c_visible) {
                         var ajax = this.$.ajax_lessen_ophalen;
-                        ajax.url="http://localhost:8080/student/getById/" + this.c_user.id;
+                        ajax.url="http://localhost:8080/" + this.c_user.rol + "/lessen/" + this.c_user.id;
                         ajax.contentType="application/json";
                         ajax.generateRequest();
                     }
@@ -190,7 +191,7 @@
                 },
 
                 _lessen_ophalen_handler: function (request) {
-                    var alle_lessen = request.detail.response[0].lessen;
+                    var alle_lessen = request.detail.response;
 
                     for(var i=0; i < alle_lessen.length; i++) {
                         alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);

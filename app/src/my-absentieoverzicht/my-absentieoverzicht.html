@@ -40,6 +40,12 @@
                 color: white;
                 float: right;
                 }
+            td {
+                width: 33%;
+            }
+            table, .extrainfo {
+                width: 100%;
+            }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -49,37 +55,131 @@
         </paper-toast>
         <h1>Absentie Overzicht</h1>
         <div id="table">
-            <section id="padding">
-                Verleden absenties</section>
-            <brainy-table items="[[absenties]]" page-size="5">
-                <brainy-table-column name="Datum" width="45px">
-                    <template>[[item.datum]]</template>
+                Verleden absenties
+
+
+
+            <brainy-table items="[[absenties.verleden_absenties]]" details-enabled page-size="5" default-sort-path="les.datum" default-sort-direction="desc">
+                <brainy-table-column name="Datum" width="45px" sort-by="les.datum">
+                    <template>[[item.les.datum_lokaal]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Absentie" width="45px">
-                    <template><paper-button raised class="groen">[[item.absentie]]</paper-button></template>
+                <brainy-table-column name="Absentie">
+                    <template><paper-button active="{{expanded}}" toggles class="groen">[[item.reden]]</paper-button></template>
                 </brainy-table-column>
                 <brainy-table-column name="Vak" width="45px">
-                    <template>[[item.vak]]</template>
+                    <template>[[item.les.vakCode]]</template>
                 </brainy-table-column>
+                <brainy-table-column name width="20px" align-right flex="0">
+                    <template>
+                        <template is="dom-if" if="[[!expanded]]">
+                            <iron-icon icon="icons:expand-more"></iron-icon>
+                        </template>
+                        <template is="dom-if" if="[[expanded]]">
+                            <iron-icon icon="icons:expand-less"></iron-icon>
+                        </template>
+                    </template>
+                </brainy-table-column>
+
+                <template is="row-detail">
+                    <div class="extrainfo">
+                        <table>
+                            <tr>
+                                <td>Vakcode:   <strong>[[item.les.vakCode]]</strong></td>
+                                <td>Gebouw:    <strong>[[item.les.gebouw]]</strong></td>
+                                <td>Lokaal:    <strong>[[item.les.lokaal]]</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Datum:     <strong>[[item.les.datum_lokaal]]</strong></td>
+                                <td>Starttijd: <strong>[[item.les.starttijd]]</strong></td>
+                                <td>Eindtijd:  <strong>[[item.les.eindtijd]]</strong></td>
+                            </tr>
+                            <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'student')]]">
+                            <tr>
+                                <td>Docent:    <strong>[[item.les.docent.naam]]</strong></td>
+                                <td>Email:     <strong>[[item.les.docent.email]]</strong></td>
+                            </tr>
+                            </template>
+                            <tr>
+                                <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'docent')]]">
+                                <td>Klas:    <strong>[[item.les.klas]]</strong></td>
+                                </template>
+                                <td>Reden:     <strong>[[item.reden]]</strong></td>
+                                <td>Opmerking: <strong>[[item.opmerking]]</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </template>
             </brainy-table>
+
             <br>
-            <div id="table1">
-                <section id="padding1">
-                    Komende absenties</section>
-                <brainy-table items="[[absenties]]" page-size="5">
-                    <brainy-table-column name="Datum" width="45px">
-                        <template>[[item.datum]]</template>
-                    </brainy-table-column>
-                    <brainy-table-column name="Absentie" width="45px">
-                        <template><paper-button class="groen">[[item.absentie]]</paper-button></template>
-                    </brainy-table-column>
-                    <brainy-table-column name="Vak" width="45px">
-                        <template>[[item.vak]]</template>
-                    </brainy-table-column>
-                    <brainy-table-column name="Annuleren" width="45px">
-                        <template><paper-button raised class="annuleren">Annuleren</paper-button></template>
-                    </brainy-table-column>
-                </brainy-table>
+                Komende absenties
+
+            <brainy-table items="[[absenties.komende_absenties]]" details-enabled page-size="5" default-sort-path="les.datum" default-sort-direction="asc">
+                <brainy-table-column name="Datum" width="45px" sort-by="les.datum">
+                    <template>[[item.les.datum_lokaal]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Absentie">
+                    <template><paper-button active="{{expanded}}" toggles class="groen">[[item.reden]]</paper-button></template>
+                </brainy-table-column>
+                <brainy-table-column name="Vak" width="45px">
+                    <template>[[item.les.vakCode]]</template>
+                </brainy-table-column>
+                <brainy-table-column name width="20px" align-right flex="0">
+                    <template>
+                        <template is="dom-if" if="[[!expanded]]">
+                            <iron-icon icon="icons:expand-more"></iron-icon>
+                        </template>
+                        <template is="dom-if" if="[[expanded]]">
+                            <iron-icon icon="icons:expand-less"></iron-icon>
+                        </template>
+                    </template>
+                </brainy-table-column>
+
+                <template is="row-detail">
+                    <div class="extrainfo">
+                        <table>
+                            <tr>
+                                <td>Vakcode:   <strong>[[item.les.vakCode]]</strong></td>
+                                <td>Gebouw:    <strong>[[item.les.gebouw]]</strong></td>
+                                <td>Lokaal:    <strong>[[item.les.lokaal]]</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Datum:     <strong>[[item.les.datum_lokaal]]</strong></td>
+                                <td>Starttijd: <strong>[[item.les.starttijd]]</strong></td>
+                                <td>Eindtijd:  <strong>[[item.les.eindtijd]]</strong></td>
+                            </tr>
+                            <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'student')]]">
+                                <tr>
+                                    <td>Docent:    <strong>[[item.les.docent.naam]]</strong></td>
+                                    <td>Email:     <strong>[[item.les.docent.email]]</strong></td>
+                                </tr>
+                            </template>
+                            <tr>
+                                <template is="dom-if" if="[[_are_strings_equal(c_user.rol, 'docent')]]">
+                                    <td>Klas:    <strong>[[item.les.klas]]</strong></td>
+                                </template>
+                                <td>Reden:     <strong>[[item.reden]]</strong></td>
+                                <td>Opmerking: <strong>[[item.toelichting]]</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </template>
+            </brainy-table>
+        </div>
+
+
+
+
+        <iron-ajax
+                id="ajax_absenties_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_absenties_ophalen_handler">
+        </iron-ajax>
+
     </template>
 
     <script>
@@ -100,19 +200,62 @@
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_initializing'                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_absenties_ophalen'                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
                     absenties: {
-                        type: Array,
-                        value: [
-                            {datum: "28-01-2017", absentie: "Ziek", vak: "OODC"},
-                            {datum: "28-02-2017", absentie: "Tandarts", vak: "AUI"},
-                            {datum: "28-03-2017", absentie: "Te laat", vak: "HTML"}]
-
+                        type: Object
+                    },
+                    c_systeemdatumstandaard: {
+                        type: String
                     }
                 },
+
+
+
+                _absenties_ophalen: function (user, date) {
+                    this.absenties = {
+                        komende_absenties: [],
+                        verleden_absenties: []
+                    };
+                    if (this.c_visible) {
+                        var ajax = this.$.ajax_absenties_ophalen;
+                        ajax.url="http://localhost:8080/" + this.c_user.rol + "/absenties/" + this.c_user.id;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
+                    }
+                    this._initializing();
+                },
+
+                _absenties_ophalen_handler: function (request) {
+                    var alle_absenties = request.detail.response;
+                    var verleden_absenties = [];
+                    var komende_absenties = [];
+
+                    for(var i=0; i < alle_absenties.length; i++) {
+                        alle_absenties[i].les.starttijd = alle_absenties[i].les.starttijd.slice(0,5);
+                        alle_absenties[i].les.eindtijd = alle_absenties[i].les.eindtijd.slice(0,5);
+                        var date = alle_absenties[i].les.datum;
+                        date = date.slice(8) + '-' + date.slice(5,8) + date.slice(0,4);
+
+                        if (Date.parse(alle_absenties[i].les.datum) < Date.parse(this.c_systeemdatumstandaard)) {
+                            alle_absenties[i].les.datum_lokaal = date;
+                            verleden_absenties.push(alle_absenties[i])
+                        }
+                        else {
+                            alle_absenties[i].les.datum_lokaal = date;
+                            komende_absenties.push(alle_absenties[i])
+                        }
+                    }
+                    this.absenties = {
+                        komende_absenties: komende_absenties,
+                        verleden_absenties: verleden_absenties
+                    };
+
+                },
+
+
 
                 _go_home: function() {
                     var lApp = document.querySelector('my-app');  //het polymer element <my-app>
@@ -138,7 +281,14 @@
                     var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                     lToast.toggle();
                     this._go_home();
-                }
+                },
+
+                _are_strings_equal: function(p_str1, p_str2) {
+                    if(p_str2 === 'both'&& p_str1 !== 'undefined')
+                        return true;
+                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
+                    return (p_str1===p_str2);
+                },
 
             });
         })();

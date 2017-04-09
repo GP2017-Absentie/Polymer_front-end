@@ -3,7 +3,8 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
-<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/nebula-radio/nebula-radio.html">
+<link rel="import" href="../../bower_components/paper-dropdown-input/paper-dropdown-input.html">
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -49,49 +50,73 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absentie Opnemen</h1>
-        <paper-input label="Datum" readonly value="[[c_systeemdatumstandaard]]">
+        <paper-input label="Datum" readonly value="[[c_systeemdatumlokaal]]">
             <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
         </paper-input>
         <div id="table">
             <section id="padding">
                 Dagrooster</section>
-            <brainy-table items="[[vakken]]" page-size="5">
-                <brainy-table-column name="Cursuscode" width="45px">
-                    <template>[[item.code]]</template>
+            <brainy-table items="{{lessen}}">
+                <brainy-table-column name="Cursuscode" width="80px">
+                    <template>[[item.vakCode]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Starttijd" width="45px">
-                    <template>[[item.start]]</template>
+                <brainy-table-column name="Starttijd" width="30px">
+                    <template>[[item.starttijd]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Eindtijd" width="45px">
-                    <template>[[item.eind]]</template>
+                <brainy-table-column name="Eindtijd" width="30px">
+                    <template>[[item.eindtijd]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Klas" width="95px">
+                <brainy-table-column name="Klas" width="25px">
                     <template>[[item.klas]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Selecteer Les" width="50px">
-                    <template><input type="radio" name="vak" value="[[item.id]]"></template>
+                <brainy-table-column name="Les" width="25px">
+                    <template><input type="radio" name="les" value="[[item.lesId]]" checked={{item.checked}} on-change="_klas_ophalen"></template>
                 </brainy-table-column>
             </brainy-table>
             <br>
+
             <section id="padding1">
                 Studentenlijst</section>
-            <brainy-table items="[[leerlingenpervak]]" page-size="5">
-                <brainy-table-column name="Studentnummer" width="45px">
-                    <template>[[item.id]]</template>
+            <brainy-table items="{{leerlingenpervak}}" page-size="15" default-sort-path="naam" default-sort-direction="asc">
+                <brainy-table-column name="Studentnummer" width="30px" sort-by="persoonId" filter-by="persoonId">
+                    <template>[[item.persoonId]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Naam" sort-by="naam" width="80px">
-                    <template>[[item.name]]</template>
+                <brainy-table-column name="Naam" sort-by="naam" filter-by="naam" width="50px">
+                    <template>[[item.naam]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Absent" flex="1" width="50px">
-                    <template><paper-checkbox checked="{{expanded}}">Absent</paper-checkbox></template>
-                </brainy-table-column>
-                <brainy-table-column name="Te laat" flex="1" width="50px">
-                    <template><paper-checkbox checked="{{expanded}}">Te laat</paper-checkbox></template>
+                <brainy-table-column name="Absent" flex="1" width="30px">
+                    <template><paper-checkbox checked={{item.absent}}>Absent</paper-checkbox></template>
                 </brainy-table-column>
             </brainy-table>
             <br>
 
         </div>
+                <paper-button on-tap="_absenties_doorgeven">Absenties Doorgeven</paper-button>
+
+        <iron-ajax
+                id="ajax_lessen_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_lessen_ophalen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_klas_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_klas_ophalen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_absenties_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_absenties_ophalen_handler">
+        </iron-ajax>
+
     </template>
 
 
@@ -111,33 +136,104 @@
                         type: String
 
                     },
+                    c_systeemdatumlokaal: {
+                        type: String
+                    },
+                    les_selected: {
+                        type: String
+                    },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_lessen_ophalen'                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    vakken: {
-                        type: Array,
-                        value: [
-                            {code: "AUI", start: "8:30", eind: "10:30", docent: "Peter Schuler"},
-                            {code: "OODC", start: "13:00", eind: "15:00", docent: "Adriaan Bakker"},
-                            {code: "GP", start: "17:00", eind: "19:00", docent: "Martijn Jansen"}
-                        ]
+                    lessen: {
+                        type: Array
                     },
                     leerlingenpervak: {
-                        type: Array,
-                        value: [
-                            {code: "5677", voornaam: "Timo", achternaam: "Glastra"},
-                            {code: "5435", voornaam: "Karim", achternaam: "Stekelenburg"},
-                            {code: "1235", voornaam: "Owen", achternaam: "Ashby"}]
-
+                        type: Array
                     },
                     c_user: {
                         type: Object
                     }
                 },
+
+                _lessen_ophalen: function (user, date) {
+                    this.lessen = [];
+                    if (this.c_visible) {
+                        var ajax = this.$.ajax_lessen_ophalen;
+                        ajax.url="http://localhost:8080/docent/lessen/" + this.c_user.id;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
+                    }
+                    this._initializing();
+                },
+
+                _lessen_ophalen_handler: function (request) {
+                    var alle_lessen = request.detail.response;
+                    var lessen_vandaag = [];
+
+                    for(var i=0; i < alle_lessen.length; i++) {
+                        if(alle_lessen[i].datum === this.c_systeemdatumstandaard) {
+                            alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);
+                            alle_lessen[i].eindtijd = alle_lessen[i].eindtijd.slice(0,5);
+                            lessen_vandaag.push(alle_lessen[i]);
+                        }
+                    }
+                    this.lessen = lessen_vandaag;
+                    if (lessen_vandaag.length > 0) {
+                       this.lessen[0].checked = true;
+                        var ajax = this.$.ajax_klas_ophalen;
+                        ajax.url="http://localhost:8080/les/studenten/" + this.lessen[0].lesId;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
+                    }
+
+
+
+
+                },
+
+                absenties_doorgeven: function () {
+                    console.log(this.leerlingenpervak);
+                },
+
+                _klas_ophalen: function () {
+                    this.leerlingenpervak = [];
+                        var ajax = this.$.ajax_klas_ophalen;
+                        ajax.url="http://localhost:8080/les/studenten/" + this.$$('input[name="les"]:checked').value;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
+                },
+
+                _klas_ophalen_handler: function (request) {
+                    this.leerlingenpervak = request.detail.response;
+                    var ajax = this.$.ajax_absenties_ophalen;
+                    ajax.url="http://localhost:8080/les/absenties/" + this.$$('input[name="les"]:checked').value;
+                    ajax.contentType="application/json";
+                    ajax.generateRequest();
+                },
+
+                _absenties_ophalen_handler: function (request) {
+                    var absenties = request.detail.response;
+                    var klassenlijst = this.leerlingenpervak;
+
+                    for (var i=0; i< klassenlijst.length; i++) {
+                        klassenlijst[i].absent_old = false;
+                        klassenlijst[i].absent = false;
+                        for (var j=0; j<absenties.length; j++) {
+                            if (klassenlijst[i].persoonId === absenties[j].persoon.persoonId) {
+                                klassenlijst[i].absent = true;
+                                klassenlijst[i].absent_old = true;
+                            }
+                        }
+                    }
+                    this.leerlingenpervak = klassenlijst;
+
+                },
+
                 _go_home: function() {
                     var lApp = document.querySelector('my-app');  //het polymer element <my-app>
                     var lAppRouter = lApp.$.approuter;            // het html-element <app-route> met id=approuter

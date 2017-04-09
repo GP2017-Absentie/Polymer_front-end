@@ -21,7 +21,8 @@
     "paper-dropdown-input": "Juravenator/paper-dropdown-input#^2.1.1",
     "brainy-table": "OWOX/brainy-table#^1.7.2",
     "paper-date-picker": "bendavis78/paper-date-picker#^1.2.0",
-    "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.1"
+    "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.1",
+    "nebula-radio": "arsnebula/nebula-radio#^1.1.0"
   },
   "devDependencies": {},
   "ignore": []

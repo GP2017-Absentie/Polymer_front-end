@@ -98,7 +98,7 @@
 
         <iron-ajax
                 id="ajax_login"
-                method="POST"
+                method="PUT"
                 url="http://localhost:8080/persoon/login"
                 handle-as="json"
                 on-response="_ophalen_login_response_handler">
@@ -174,12 +174,11 @@
                 },
 
                 _ophalen_login_response_handler: function (request) {
-                    var user = request.detail.response;
-                    if(user.status === 400) user.rol = "undefined";
-                    else if (user.klas === undefined) user.rol = "docent";
-                    else if (user.klas !== undefined) user.rol = "student";
-                    this.user = user;
+                    this.user = request.detail.response;
+                    this.user.id = this.user.persoonId;
                     this._password = "";
+
+                    if (request.detail.status != 200) this.user = {rol: "undefined"};
                     if (this.user.rol === "undefined") {                    //als aanloggen mislukt
                         this.$.email_element.invalid = true;                // markeer email-element
                         this.$.wachtwoord_element.invalid = true;// markeer wachtwoord-element

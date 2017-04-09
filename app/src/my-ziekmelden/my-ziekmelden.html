@@ -148,7 +148,7 @@
         <iron-ajax
                 id="ajax_ziek_melden"
                 method="POST"
-                url="http://localhost:8080/absentie/meldZiek"
+                url="http://localhost:8080/absentie/ziek"
                 handle-as="json"
                 on-response="_meld_ziek_handler">
         </iron-ajax>
@@ -194,7 +194,7 @@
                     this.lessen = [];
                     if (this.c_visible) {
                         var ajax = this.$.ajax_lessen_ophalen;
-                        ajax.url="http://localhost:8080/student/getById/" + this.c_user.id;
+                        ajax.url="http://localhost:8080/" + this.c_user.rol + "/lessen/" + this.c_user.id;
                         ajax.contentType="application/json";
                         ajax.generateRequest();
                     }
@@ -202,7 +202,7 @@
                 },
 
                 _lessen_ophalen_handler: function (request) {
-                    var alle_lessen = request.detail.response[0].lessen;
+                    var alle_lessen = request.detail.response;
                     var lessen_vandaag = [];
 
                     for(var i=0; i < alle_lessen.length; i++) {
