@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -36,9 +37,8 @@
                 float: right;
                 }
             paper-button.annuleren {
-                background-color: #999999;
+                background-color: red;
                 color: white;
-                float: right;
                 }
             td {
                 width: 33%;
@@ -104,7 +104,7 @@
                                 <td>Klas:    <strong>[[item.les.klas]]</strong></td>
                                 </template>
                                 <td>Reden:     <strong>[[item.reden]]</strong></td>
-                                <td>Opmerking: <strong>[[item.opmerking]]</strong></td>
+                                <td>Opmerking: <strong>[[item.toelichting]]</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -116,14 +116,17 @@
                 Komende absenties
 
             <brainy-table items="[[absenties.komende_absenties]]" details-enabled page-size="5" default-sort-path="les.datum" default-sort-direction="asc">
-                <brainy-table-column name="Datum" width="45px" sort-by="les.datum">
+                <brainy-table-column name="Datum" sort-by="les.datum">
                     <template>[[item.les.datum_lokaal]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Absentie">
                     <template><paper-button active="{{expanded}}" toggles class="groen">[[item.reden]]</paper-button></template>
                 </brainy-table-column>
-                <brainy-table-column name="Vak" width="45px">
+                <brainy-table-column name="Vak">
                     <template>[[item.les.vakCode]]</template>
+                </brainy-table-column>
+                <brainy-table-column name="Annuleren">
+                    <template><paper-button class="annuleren" raised value="[[item.absentieId]]" on-tap="_absentie_annuleren_modal">Annuleren</paper-button></template>
                 </brainy-table-column>
                 <brainy-table-column name width="20px" align-right flex="0">
                     <template>
@@ -135,6 +138,9 @@
                         </template>
                     </template>
                 </brainy-table-column>
+
+
+
 
                 <template is="row-detail">
                     <div class="extrainfo">
@@ -170,6 +176,15 @@
         </div>
 
 
+        <paper-dialog id="modal" modal>
+            <p>Weet je zeker dat je de absentie wilt annuleren?</p>
+            <div class="buttons">
+                <paper-button dialog-dismiss>Weiger</paper-button>
+                <paper-button dialog-confirm autofocus on-tap="_absentie_annuleren" >Accepteer</paper-button>
+            </div>
+        </paper-dialog>
+
+
 
 
         <iron-ajax
@@ -178,6 +193,14 @@
                 url=""
                 handle-as="json"
                 on-response="_absenties_ophalen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_absentie_annuleren"
+                method="DELETE"
+                url=""
+                handle-as="json"
+                on-response="_absentie_annuleren_handler">
         </iron-ajax>
 
     </template>
@@ -209,10 +232,33 @@
                     },
                     c_systeemdatumstandaard: {
                         type: String
+                    },
+                    annuleer_id: {
+                        type: String
                     }
                 },
 
+                _absentie_annuleren_modal: function (e) {
+                    this.annuleer_id = e.currentTarget.value;
+                    this.$.modal.open();
+                },
 
+                _absentie_annuleren: function () {
+                    var ajax = this.$.ajax_absentie_annuleren;
+                    ajax.url="http://localhost:8080/absentie/" + this.annuleer_id;
+                    ajax.contentType="application/json";
+                    ajax.generateRequest();
+                },
+
+                _absentie_annuleren_handler: function (request) {
+                    if(request.detail.status === 200) {
+                        console.log("goed geannuleerd");
+                    }
+                    else {
+                        console.log("niet gelukt");
+                    }
+                    this._absenties_ophalen();
+                },
 
                 _absenties_ophalen: function (user, date) {
                     this.absenties = {
@@ -239,7 +285,7 @@
                         var date = alle_absenties[i].les.datum;
                         date = date.slice(8) + '-' + date.slice(5,8) + date.slice(0,4);
 
-                        if (Date.parse(alle_absenties[i].les.datum) < Date.parse(this.c_systeemdatumstandaard)) {
+                        if (Date.parse(alle_absenties[i].les.datum) <= Date.parse(this.c_systeemdatumstandaard)) {
                             alle_absenties[i].les.datum_lokaal = date;
                             verleden_absenties.push(alle_absenties[i])
                         }

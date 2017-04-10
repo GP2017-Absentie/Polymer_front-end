@@ -56,7 +56,7 @@
                 text-align: center;
             }
             #goed {
-                background-color: #a9ff8c;
+                background-color: greenyellow;
                 display: none;
                 border-radius: 0 0 8px 8px;
                 margin: 0 1px;
@@ -73,6 +73,12 @@
             .clear {
                 clear: both;
             }
+            .my-input {
+                max-width: 200px;
+            }
+            #icon {
+                margin-right: 5px;
+            }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -81,11 +87,12 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Absent Melden</h1>
-        <paper-date-picker date="{{datum}}"></paper-date-picker>
+        <div class="my-input">
+            <paper-input label="Datum" autofocus type="date" value="{{datum}}"></paper-input>
+        </div>
         <br>
         <div id="table">
-            <section id="padding">
-                Geeft lessen weer van de geselecteerde dag</section>
+            <section id="padding">&nbsp;Selecteer lessen om absent te melden</section>
             <brainy-table items="{{lessen}}" page-size="5">
                 <brainy-table-column name="Absente vakken" flex="1" width="50px">
                     <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
@@ -99,9 +106,16 @@
                 <brainy-table-column name="Eindtijd" width="45px">
                     <template>[[item.eindtijd]]</template>
                 </brainy-table-column>
+                <template is="dom-if" if="[[!_are_strings_equal(c_user.rol, 'docent')]]">
                 <brainy-table-column name="Docent" width="95px">
                     <template>[[item.docent.naam]]</template>
                 </brainy-table-column>
+                </template>
+                <template is="dom-if" if="[[!_are_strings_equal(c_user.rol, 'student')]]">
+                    <brainy-table-column name="Klas" width="35px">
+                        <template>[[item.klas]]</template>
+                    </brainy-table-column>
+                </template>
 
             </brainy-table>
 
@@ -111,8 +125,8 @@
         </div>
         <paper-dropdown-input value={{reden}} label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
 
-        <paper-input label="Opmerking" multiline rows="5" value="{{opmerking}}">
-            <iron-icon icon="icons:create" prefix></iron-icon>
+        <paper-input label="Opmerking (verplicht bij reden 'Overig')" multiline rows="5" value="{{opmerking}}">
+            <iron-icon id="icon" icon="icons:create" prefix></iron-icon>
         </paper-input>
         <paper-button id="meldabsent" raised on-click="_absent_melden" class="indigo">Absentie doorgeven</paper-button>
         <br class="clear">
@@ -128,7 +142,7 @@
         <iron-ajax
                 id="ajax_absent_melden"
                 method="POST"
-                url="http://localhost:8080/absentie"
+                url="http://localhost:8080/absentie/absent"
                 handle-as="json"
                 on-response="_absent_melden_handler">
         </iron-ajax>
@@ -148,12 +162,9 @@
                 is: 'my-absentmelden',
 
                 properties: {
-                    c_systeemdatumstandaard: {
-                        type: String
-                    },
                     datum: {
                         type: String,
-                        observer: '_lessen_vandaag'
+                        observer: '_lessen_vandaag',
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
@@ -207,7 +218,7 @@
                     if (this.c_visible) {
                         this.lessen = [];
                         var lessen_vandaag = [];
-                        var date = this.datum.toISOString().slice(0,10);
+                        var date = this.datum;
 
                         for (var i = 0; i < this.alle_lessen.length; i++) {
                             if (this.alle_lessen[i].datum === date) {
@@ -234,11 +245,11 @@
                     if (this.c_visible) {
                         this.$.fout.style.display = "none";
                         this.$.goed.style.display = "none";
-                        var date = this.datum.toISOString().slice(0,10);
+                        var date = this.datum;
                         var checked = [];
                         for (var i=0; i < this.lessen.length; i++) {
                             if (this.lessen[i].checked === true) {
-                                checked.push(this.lessen[i].id);
+                                checked.push(this.lessen[i].lesId);
                             }
                         }
                         var reden = this.reden;
@@ -297,11 +308,18 @@
                     }
                 },
 
+                _are_strings_equal: function(p_str1, p_str2) {
+                    if(p_str2 === 'both'&& p_str1 !== 'undefined')
+                        return true;
+                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
+                    return (p_str1===p_str2);
+                },
+
                 _toast_clicked: function(e) {
                     var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
                     lToast.toggle();
                     this._go_home();
-                },
+                }
 
             });
         })();
