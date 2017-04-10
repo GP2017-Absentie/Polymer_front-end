@@ -56,16 +56,15 @@
             </tr>
         </table>
 
-
+        <google-chart class="float"
+                      type='pie'
+                      options='{"title": "Gemiste lessen","is3D": "true"}'
+                      data='{{aanwezigheid}}'>
+        </google-chart>
         <google-chart class="float"
                 type='pie'
                 options='{"title": "Reden van absentie","is3D": "true"}'
                 data='{{redenen}}'>
-        </google-chart>
-        <google-chart class="float"
-                type='pie'
-                options='{"title": "Gemiste lessen","is3D": "true"}'
-                data='{{aanwezigheid}}'>
         </google-chart>
         <br class="clear">
 
@@ -164,7 +163,7 @@
 
                         date = date.slice(8) + '-' + date.slice(5,8) + date.slice(0,4);
 
-                        if (Date.parse(alle_absenties[i].les.datum) < Date.parse(this.c_systeemdatumstandaard)) {
+                        if (Date.parse(alle_absenties[i].les.datum) <= Date.parse(this.c_systeemdatumstandaard)) {
                             alle_absenties[i].les.datum_lokaal = date;
                             verleden_absenties.push(alle_absenties[i])
                         }
