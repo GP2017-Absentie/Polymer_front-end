@@ -1,4 +1,3 @@
-
 <!----------------------------------------------------IMPORTS---------------------------------------------------------->
 <link rel="import" href="../../bower_components/polymer/polymer.html" xmlns="">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
@@ -146,6 +145,14 @@
         </iron-ajax>
 
         <iron-ajax
+                id="ajax_absentie_annuleren"
+                method="DELETE"
+                url=""
+                handle-as="json"
+                on-response="_absentie_annuleren_handler">
+        </iron-ajax>
+
+        <iron-ajax
                 id="ajax_ziek_melden"
                 method="POST"
                 url="http://localhost:8080/absentie/ziek"
@@ -196,6 +203,10 @@
                     },
                     lessen_vandaag: {
                         type: Array
+                    },
+                    absenties_vandaag: {
+                        type: Array,
+                        value: []
                     }
                 },
 
@@ -214,6 +225,7 @@
                     var alle_lessen = request.detail.response;
                     var lessen_vandaag = [];
 
+
                     for(var i=0; i < alle_lessen.length; i++) {
                         if(alle_lessen[i].datum === this.c_systeemdatumstandaard) {
                             alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);
@@ -228,7 +240,7 @@
                     if (this.lessen_vandaag.length === 0) {
                         this.$.meldziek.disabled = true;
                         this.$.goed.style.display = "block";
-                        this.$.goed.innerText = "Je hebt geen lessen vandaag. Je hoeft je dus niet ziek te melden"
+                        this.$.goed.innerText = "Je hebt geen lessen vandaag. Je hoeft je dus niet ziek te melden";
                     }
                     else {
                         this.$.meldziek.disabled = false;
@@ -248,24 +260,67 @@
                 _absenties_ophalen_handler: function (request) {
                     var absenties = request.detail.response;
                     var lessen = this.lessen_vandaag;
+                    var absenties_vandaag = [];
 
-                    for (var i=0; i< absenties.length; i++) {
-                        for (var j=0; j<lessen.length; j++) {
-                            if (lessen[j].datum === absenties[i].les.datum) {
-                                this.$.meldziek.disabled = true;
-                                this.$.fout.innerText = "Je bent al absent gemeld voor (een deel van) vandaag, annuleer eerst je absenties voor vandaag in het 'Absentie Overzicht'";
-                                this.$.fout.style.display = "block";
+                    for (var i=0; i< lessen.length; i++) {
+                        for (var j=0; j<absenties.length; j++) {
+                            if (lessen[i].lesId === absenties[j].les.lesId) {
+                                absenties_vandaag.push({
+                                    lesId: absenties[j].les.lesId,
+                                    absentieId: absenties[j].absentieId,
+                                    ziek: absenties[j].reden === 'ziek'
+                                });
                             }
                         }
                     }
-                    this.lessen = this.lessen_vandaag;
+
+                    if (lessen.length === absenties_vandaag.length && this._all_ziek(absenties_vandaag)) {
+                        this.$.meldziek.disabled = true;
+                        this.$.goed.style.display = "block";
+                        this.$.goed.innerText = "Je bent al ziek gemeld voor vandaag!";
+                    }
+
+                    else if(lessen.length === absenties_vandaag.length) {
+                        this.$.meldziek.disabled = true;
+                        this.$.goed.style.display = "block";
+                        this.$.goed.innerText = "Je bent al absent gemeld voor vandaag. Het heeft geen zin om je nog ziek te melden";
+                    }
+
+                    else if(absenties_vandaag.length > 0) {
+                        this.$.meldziek.disabled = false;
+                        this.$.fout.style.display = "block";
+                        this.$.fout.innerText = "Je staat al voor een deel van de dag als absent. Druk op ziek melden om je voor de hele dag ziek te melden. Dit zal je absentie overschrijven!";
+                        this.lessen = this.lessen_vandaag;
+                        this.absenties_vandaag = absenties_vandaag;
+                    }
+                    else {
+                        this.lessen = this.lessen_vandaag;
+                    }
 
                 },
 
-                //Als alle lessen ziek: Niet meer veranderbaar,
-                //Als deel ziek: Ziek melden toegestaan, absenties worden verwijderd,
-                //Als helemaal niet ziek: Ziek melden toegestaan
+                _all_ziek : function (array) {
+                  for (var i=0; i < array.length; i++) {
+                      if (array[i].ziek === false) return false
+                  }
+                  return true
+                },
+
+
+                _absentie_annuleren_handler: function (request) {
+                },
+
                 _meld_ziek: function () {
+                    var absenties_annuleren = this.absenties_vandaag;
+                    var ajax_annuleren = this.$.ajax_absentie_annuleren;
+                    for (var i=0; i<absenties_annuleren.length;i++) {
+                        ajax_annuleren.url="http://localhost:8080/absentie/" + absenties_annuleren[i].absentieId;
+                        ajax_annuleren.contentType="application/json";
+                        ajax_annuleren.generateRequest();
+                    }
+
+                    this.$.fout.style.display = "none";
+
                     var ajax = this.$.ajax_ziek_melden;
                     ajax.contentType="application/json";
                     ajax.body={
@@ -282,6 +337,7 @@
                     else {
                         this.$.fout.style.display = "block";
                     }
+                    this.$.meldziek.disabled = true;
                 },
 
                 _go_home: function() {
@@ -295,7 +351,6 @@
                 _are_strings_equal: function(p_str1, p_str2) {
                     if(p_str2 === 'both'&& p_str1 !== 'undefined')
                         return true;
-                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
                     return (p_str1===p_str2);
                 },
 

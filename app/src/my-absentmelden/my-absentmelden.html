@@ -67,6 +67,12 @@
                 border-radius: 0 0 8px 8px;
                 margin: 0 1px;
             }
+            #input {
+                background-color: rgba(255, 83, 66, 0.58);
+                display: none;
+                border-radius: 0 0 8px 8px;
+                margin: 0 1px;
+            }
             #meldabsent {
                 float: right;
             }
@@ -88,14 +94,14 @@
         </paper-toast>
         <h1>Absent Melden</h1>
         <div class="my-input">
-            <paper-input label="Datum" autofocus type="date" value="{{datum}}"></paper-input>
+            <paper-input label="Selecteer een datum" autofocus type="date" min="{{datum_min}}" value="{{datum}}"></paper-input>
         </div>
         <br>
         <div id="table">
-            <section id="padding">&nbsp;Selecteer lessen om absent te melden</section>
+            <section id="padding">Selecteer lessen om absent voor te melden. Voor de lessen die al geselecteerd zijn ben je al absent gemeld. Je kan dit wijzigen in het absentie overzicht </section>
             <brainy-table items="{{lessen}}" page-size="5">
                 <brainy-table-column name="Absente vakken" flex="1" width="50px">
-                    <template><paper-checkbox checked="{{item.checked}}"></paper-checkbox></template>
+                    <template><paper-checkbox disabled="{{item.absent}}" checked="{{item.checked}}"></paper-checkbox></template>
                 </brainy-table-column>
                 <brainy-table-column name="Cursuscode" width="45px">
                     <template>[[item.vakCode]]</template>
@@ -121,6 +127,7 @@
 
             <!--MESSAGES NA INZENDEN ABSENTMELDING, GOED OF FOUT-->
             <div id="goed" class="padding">Je bent absent gemeld!</div>
+            <div id="input" class="padding">{{error_message}}</div>
             <div id="fout" class="padding">Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.</div>
         </div>
         <paper-dropdown-input value={{reden}} label="Reden van absentie" items='["Dokter","Tandarts","Religieuze feestdag","Huwelijk","Begrafenis","Overig"]'></paper-dropdown-input>
@@ -146,6 +153,14 @@
                 handle-as="json"
                 on-response="_absent_melden_handler">
         </iron-ajax>
+
+        <iron-ajax
+                id="ajax_absenties_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_absenties_ophalen_handler">
+        </iron-ajax>
     </template>
 
 
@@ -162,9 +177,12 @@
                 is: 'my-absentmelden',
 
                 properties: {
+                    datum_min: {
+                        type: String
+                    },
                     datum: {
                         type: String,
-                        observer: '_lessen_vandaag',
+                        observer: '_lessen_vandaag'
                     },
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
@@ -179,6 +197,9 @@
                     lessen: {
                         type: Array
                     },
+                    lessen_today: {
+                        type: Array
+                    },
                     alle_lessen: {
                         type: Array
                     },
@@ -187,10 +208,15 @@
                     },
                     opmerking : {
                         type: String
+                    },
+                    error_message: {
+                        type: String
                     }
                 },
 
+
                 _lessen_ophalen: function (user, date) {
+                    this.$.input.style.display = "none";
                     this.alle_lessen = [];
                     if (this.c_visible) {
                         var ajax = this.$.ajax_lessen_ophalen;
@@ -226,9 +252,9 @@
                             }
                         }
 
-                        this.lessen = lessen_vandaag;
+                        this.lessen_today = lessen_vandaag;
 
-                        if (this.lessen.length === 0) {
+                        if (this.lessen_today.length === 0) {
                             this.$.meldabsent.disabled = true;
                             this.$.goed.style.display = "block";
                             this.$.goed.innerText = "Je hebt geen lessen op deze dag. Je hoeft je dus niet absent te melden"
@@ -236,26 +262,59 @@
                         else {
                             this.$.meldabsent.disabled = false;
                             this.$.goed.style.display = "none";
-                            this.$.goed.innerText = "Je bent absent gemeld!"
+                            this.$.goed.innerText = "Je bent absent gemeld!";
+                            this._absenties_ophalen();
                         }
                     }
+                },
+
+                _absenties_ophalen: function () {
+                    var ajax = this.$.ajax_absenties_ophalen;
+                    ajax.url="http://localhost:8080/" + this.c_user.rol + "/absenties/" + this.c_user.id;
+                    ajax.contentType="application/json";
+                    ajax.generateRequest();
+                },
+
+                _absenties_ophalen_handler: function (request) {
+                    var absenties = request.detail.response;
+                    var lessen = this.lessen_today;
+                    var absenties_vandaag = [];
+
+                    for (var i=0; i< lessen.length; i++) {
+                        lessen[i].absent = false;
+                        for (var j=0; j<absenties.length; j++) {
+                            if (lessen[i].lesId === absenties[j].les.lesId) {
+                                absenties_vandaag.push(absenties[j]);
+                                lessen[i].absent = true;
+                                lessen[i].checked = true;
+                            }
+                        }
+                    }
+                    if (lessen.length === absenties_vandaag.length) {
+                        this.$.goed.innerText = "Je bent al absent gemeld voor alle lessen vandaag";
+                        this.$.goed.style.display = "block";
+                        this.$.meldabsent.disabled = true;
+                    }
+                    this.lessen = lessen;
+
                 },
 
                 _absent_melden: function () {
                     if (this.c_visible) {
                         this.$.fout.style.display = "none";
                         this.$.goed.style.display = "none";
+                        this.$.input.style.display = "none";
                         var date = this.datum;
                         var checked = [];
                         for (var i=0; i < this.lessen.length; i++) {
-                            if (this.lessen[i].checked === true) {
+                            if (this.lessen[i].checked === true && this.lessen[i].absent === false) {
                                 checked.push(this.lessen[i].lesId);
                             }
                         }
                         var reden = this.reden;
                         var opmerking = this.opmerking;
 
-                        if(date !== null && checked.length !== 0 && reden !== null && ((reden === "Overig" && opmerking.length !== 0) || reden !== "Overig")) {
+                        if(date !== null && checked.length !== 0 && reden !== undefined && ((reden === "Overig" && opmerking.length !== 0) || reden !== "Overig")) {
                             this.$.fout.style.display = "none";
                             this.$.fout.innerText = "Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.";
                             var ajax = this.$.ajax_absent_melden;
@@ -270,11 +329,20 @@
                                 };
                                 ajax.generateRequest();
                             }
+                            this.opmerking = "";
+                            this.reden = undefined;
+                            this.$.meldabsent.disabled = true;
 
                         }
                         else {
-                            this.$.fout.innerText = "Niet alle velden zijn correct ingevuld!";
-                            this.$.fout.style.display = "block";
+                            console.log(reden === undefined);
+                            this.error_message = "Niet alle gegevens kloppen";
+                            if (date === null) this.error_message = "Datum is niet ingevuld";
+                            else if (checked.length === 0) this.error_message = "Selecteer minimaal één les";
+                         else if(reden === undefined) this.error_message = "Selecteer een reden";
+                            else if(reden === "Overig" && opmerking.length === 0) this.error_message = "Geef een toelichting op de absentie";
+
+                            this.$.input.style.display = "block";
                         }
                     }
                 },
@@ -298,7 +366,8 @@
 
                 _initializing : function() {
                     if (this.c_visible) {// zodra zichtbaar geworden moet er wat worden gedaan
-                        if (this.c_user.rol==="student" || this.c_user.rol==="docent") {                        // voor studenten
+                        if (this.c_user.rol==="student" || this.c_user.rol==="docent") {
+                            // voor studenten
                             //doe iets
                         } else {                                            // na handmatige url wijziging zonder login
                             var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep

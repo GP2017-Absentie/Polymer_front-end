@@ -286,6 +286,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <my-systeemdatum
                 systeemdatumlokaal="{{_systeemdatumlokaal}}"
                 systeemdatumstandaard="{{_systeemdatumstandaard}}"
+                datum_morgen="{{_datum_morgen}}"
                 c_visible="[[_are_strings_equal(_ar_page, 'systeem_instellen_systeemdatum')]]">
               </my-systeemdatum>
             </paper-material>
@@ -347,8 +348,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <my-absentmelden
                     c_visible="[[_are_strings_equal(_ar_page, 'absentmelden')]]"
                     c_user = "[[user]]"
-                    c_systeemdatumlokaal="[[_systeemdatumlokaal]]"
-                    datum="[[_systeemdatumstandaard]]">
+                    datum_min="[[_datum_morgen]]"
+                    datum="[[_datum_morgen]]">
             </my-absentmelden>
           </paper-material>
         </section>
@@ -463,8 +464,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: String
           },
           _systeemdatumstandaard: {		
-            type: String
+            type: String,
           },
+            _datum_morgen: {
+              type: String
+            },
 
           user: {
               type: Object,
@@ -481,7 +485,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           '_ar_route_data_page_changed(_ar_route_data.page)',
           '_ar_subroute_data_subpage_changed(_ar_subroute_data.subpage)'
         ],
-        
         _ar_route_data_page_changed: function(pNewPage) {
           if (!this.$.drawer.persistent) {
             this.$.drawer.close();
@@ -547,6 +550,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 		  var eenDatumObject             = new Date(); // is vandaag
 		  this._systeemdatumstandaard    = this.date_to_standaard_string(eenDatumObject);
 		  this._systeemdatumlokaal       = eenDatumObject.toLocaleDateString();
+
+
+          var date1 = Date.parse(this._systeemdatumstandaard) + 86400000;
+          date1 = new Date(date1).toISOString().slice(0,10);
+          this._datum_morgen = date1;
         },
 	      
          // convert a JSDate-object to standaard format (=YYYY-MM-DD)

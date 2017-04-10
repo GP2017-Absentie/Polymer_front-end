@@ -108,11 +108,23 @@
           },
           systeemdatumstandaard: {
             type: Date,                                         /* dit is een string in YYYY-MM-DD formaat
-                                                               ook als de regional settings anders aangeven*/
+                                          ook als de regional settings anders aangeven*/
             notify: true
+          },
+          datum_morgen: {
+              type: String,
+              computed: '_tomorrow(systeemdatumstandaard)',
+              notify: true
           }
         },
 
+          _tomorrow: function (datum) {
+            if(datum !== "" && datum !== undefined){
+                var date1 = Date.parse(datum) + 86400000;
+                date1 = new Date(date1).toISOString().slice(0,10);
+                return date1;
+            }
+          },
         _standaarddatumstring_to_lokaledatumstring: function(pStandaardDatum) {
          	var lApp = document.querySelector('my-app');
          	return lApp.standaarddatumstring_to_lokaledatumstring(pStandaardDatum);
