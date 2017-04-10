@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/google-chart/google-chart.html">
 
 <!-- Dit element wordt door de aanwezigheid van de c_visible parameter steeds opnieuw gerefreshed
      op het moment dat het element in de iron-pages geselecteerd wordt
@@ -30,6 +31,16 @@
                 background: #1a9fd9; /* kind of blue */
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
+            google-chart {
+                height: 400px;
+                width: 50em;
+            }
+            .float{
+                float:left;
+            }
+            .clear{
+                clear:both;
+            }
         </style>
         <paper-toast
                 id="toast_invalid_aanroep"
@@ -38,6 +49,41 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Statistieken Inzien</h1>
+        <table>
+            <tr>
+                <td>Gemiste Lessen:</td>
+                <td>[[gemiste_uren]] van de [[totaal_lessen]]  ([[gemist_percentage]]% totaal gemist)</td>
+            </tr>
+        </table>
+
+
+        <google-chart class="float"
+                type='pie'
+                options='{"title": "Reden van absentie","is3D": "true"}'
+                data='{{redenen}}'>
+        </google-chart>
+        <google-chart class="float"
+                type='pie'
+                options='{"title": "Gemiste lessen","is3D": "true"}'
+                data='{{aanwezigheid}}'>
+        </google-chart>
+        <br class="clear">
+
+        <iron-ajax
+                id="ajax_absenties_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_absenties_ophalen_handler">
+        </iron-ajax>
+        <iron-ajax
+                id="ajax_lessen_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_lessen_ophalen_handler">
+        </iron-ajax>
+
     </template>
 
     <script>
@@ -58,10 +104,127 @@
                     c_visible: {
                         type: Boolean,                                      /* true when element is the active visible item */
                         value: false,
-                        observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                        observer: '_absenties_ophalen',                          /* wordt ook aangeroepen bijwisseling van true naar false.
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
+                    },
+                    absenties: {
+                        type: Object
+                    },
+                    c_systeemdatumstandaard: {
+                        type: String
+                    },
+                    gemiste_uren:{
+                        type: String
+                    },
+                    totaal_lessen:{
+                        type: String
+                    },
+                    gemist_percentage:{
+                        type: String
+                    },
+                    redenen:{
+                        type: Object
+                    },
+                    aanwezigheid:{
+                        type: Object
                     }
+                },
+                _absenties_ophalen: function (user, date) {
+                    this.absenties = {
+                        komende_absenties: [],
+                        verleden_absenties: []
+                    };
+                    this.redenen ={};
+                    this.aanwezigheid ={};
+                    this.gemist_percentage = "";
+                    this.totaal_lessen ="";
+                    this.gemiste_uren = "";
+
+                    if (this.c_visible) {
+                        var ajax = this.$.ajax_absenties_ophalen;
+                        ajax.url="http://localhost:8080/" + this.c_user.rol + "/absenties/" + this.c_user.id;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
+                    }
+                    this._initializing();
+                    this._lessen_ophalen();
+
+                },
+
+                _absenties_ophalen_handler: function (request) {
+                    var alle_absenties = request.detail.response;
+                    var verleden_absenties = [];
+
+
+                    for(var i=0; i < alle_absenties.length; i++) {
+                        alle_absenties[i].les.starttijd = alle_absenties[i].les.starttijd.slice(0,5);
+                        alle_absenties[i].les.eindtijd = alle_absenties[i].les.eindtijd.slice(0,5);
+                        var date = alle_absenties[i].les.datum;
+
+                        date = date.slice(8) + '-' + date.slice(5,8) + date.slice(0,4);
+
+                        if (Date.parse(alle_absenties[i].les.datum) < Date.parse(this.c_systeemdatumstandaard)) {
+                            alle_absenties[i].les.datum_lokaal = date;
+                            verleden_absenties.push(alle_absenties[i])
+                        }
+                    }
+                    this.absenties = {
+                        verleden_absenties: verleden_absenties
+
+                    };
+                    this.gemiste_uren = String(verleden_absenties.length);
+                    var redenen = [['reden', 'aantal'],['ziek',0],['Tandarts',0],['Dokter',0],['Religieuze Feestdag',0],['Huwelijk',0],['Begrafenis',0],['Overig',0],['Niet aanwezig',0]];
+                    for(var j=0; j < verleden_absenties.length; j++) {
+                        switch (verleden_absenties[j].reden){
+                            case 'ziek': redenen[1][1] +=1;
+                                break;
+                            case 'Tandarts': redenen[2][1] +=1;
+                                break;
+                            case 'Dokter': redenen[3][1] +=1;
+                                break;
+                            case 'Religieuze_Feestdag': redenen[4][1] +=1;
+                                break;
+                            case 'Huwelijk': redenen[5][1] +=1;
+                                break;
+                            case 'Begrafenis': redenen[6][1] +=1;
+                                break;
+                            case 'Overig': redenen[7][1] +=1;
+                                break;
+                            case 'Niet_aanwezig': redenen[8][1] +=1;
+                                break;
+
+                        }
+                        this.redenen = redenen;
+                    }
+
+                },
+                _lessen_ophalen: function (user, date) {
+                    this.lessen = [];
+                    if (this.c_visible) {
+                        var ajax = this.$.ajax_lessen_ophalen;
+                        ajax.url="http://localhost:8080/" + this.c_user.rol + "/lessen/" + this.c_user.id;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
+                    }
+                },
+
+                _lessen_ophalen_handler: function (request) {
+                    var alle_lessen = request.detail.response;
+                    this.totaal_lessen = String(alle_lessen.length);
+                    var lessen_vandaag = [];
+                    this.gemist_percentage = String(parseInt(this.gemiste_uren) / parseInt(this.totaal_lessen)* 100);
+
+                    for(var i=0; i < alle_lessen.length; i++) {
+                        if(alle_lessen[i].datum === this.c_systeemdatumstandaard) {
+                            alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);
+                            alle_lessen[i].eindtijd = alle_lessen[i].eindtijd.slice(0,5);
+                            lessen_vandaag.push(alle_lessen[i]);
+                        }
+                    }
+                    var aanwezige_lessen = parseInt(this.totaal_lessen)-parseInt(this.gemiste_uren);
+                    console.log(aanwezige_lessen);
+                    this.aanwezigheid = [['presentie', 'aantal'],['Aanwezig',aanwezige_lessen],['Absent',parseInt(this.gemiste_uren)]];
                 },
 
                 _go_home: function() {
