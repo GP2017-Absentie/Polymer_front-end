@@ -23,7 +23,11 @@
     "paper-date-picker": "bendavis78/paper-date-picker#^1.2.0",
     "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.1",
     "nebula-radio": "arsnebula/nebula-radio#^1.1.0",
+<<<<<<< HEAD
     "google-chart": "GoogleWebComponents/google-chart#^1.1.2"
+=======
+    "paper-dialog": "PolymerElements/paper-dialog#^1.1.0"
+>>>>>>> f6a292f836aabd599bc06c4c5a8690c04bb8a259
   },
   "devDependencies": {},
   "ignore": []

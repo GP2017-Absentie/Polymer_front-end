@@ -41,6 +41,9 @@
                     background-color: var(--paper-pink-a200) !important;
                     color: white !important;
                 }}
+            .clear {
+                clear: both;
+            }
         </style>
 
         <paper-toast
@@ -54,8 +57,10 @@
             <iron-icon id="icon" icon="icons:date-range" prefix></iron-icon>
         </paper-input>
         <div id="table">
+            <br>
             <section id="padding">
-                Dagrooster</section>
+                Lessen van vandaag</section>
+
             <brainy-table items="{{lessen}}">
                 <brainy-table-column name="Cursuscode" width="80px">
                     <template>[[item.vakCode]]</template>
@@ -76,7 +81,7 @@
             <br>
 
             <section id="padding1">
-                Studentenlijst</section>
+                Klassenlijst</section>
             <brainy-table items="{{leerlingenpervak}}" page-size="15" default-sort-path="naam" default-sort-direction="asc">
                 <brainy-table-column name="Studentnummer" width="30px" sort-by="persoonId" filter-by="persoonId">
                     <template>[[item.persoonId]]</template>
@@ -87,11 +92,12 @@
                 <brainy-table-column name="Absent" flex="1" width="30px">
                     <template><paper-checkbox checked={{item.absent}}>Absent</paper-checkbox></template>
                 </brainy-table-column>
+                <div no-results>Je hebt geen lessen vandaag</div>
             </brainy-table>
-            <br>
 
         </div>
-                <paper-button on-tap="_absenties_doorgeven">Absenties Doorgeven</paper-button>
+                <paper-button id='absentie' class="indigo" raised on-tap="absenties_doorgeven">Absenties Doorgeven</paper-button>
+        <br class="clear">
 
         <iron-ajax
                 id="ajax_lessen_ophalen"
@@ -115,6 +121,22 @@
                 url=""
                 handle-as="json"
                 on-response="_absenties_ophalen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_absentie_verwijderen"
+                method="DELETE"
+                url=""
+                handle-as="json"
+                on-response="_absentie_verwijderen_handler">
+        </iron-ajax>
+
+        <iron-ajax
+                id="ajax_absent_doorgeven"
+                method="POST"
+                url="http://localhost:8080/absentie/absent"
+                handle-as="json"
+                on-response="_absent_doorgeven_handler">
         </iron-ajax>
 
     </template>
@@ -157,11 +179,15 @@
                     },
                     c_user: {
                         type: Object
+                    },
+                    leerlingen_zonder: {
+                        type: Array
                     }
                 },
 
                 _lessen_ophalen: function (user, date) {
                     this.lessen = [];
+                    this.leerlingenpervak = [];
                     if (this.c_visible) {
                         var ajax = this.$.ajax_lessen_ophalen;
                         ajax.url="http://localhost:8080/docent/lessen/" + this.c_user.id;
@@ -184,20 +210,57 @@
                     }
                     this.lessen = lessen_vandaag;
                     if (lessen_vandaag.length > 0) {
+                        this.$.absentie.disabled = false;
                        this.lessen[0].checked = true;
                         var ajax = this.$.ajax_klas_ophalen;
                         ajax.url="http://localhost:8080/les/studenten/" + this.lessen[0].lesId;
                         ajax.contentType="application/json";
                         ajax.generateRequest();
                     }
-
-
-
+                    else {
+                        this.$.absentie.disabled = true;
+                    }
 
                 },
 
                 absenties_doorgeven: function () {
-                    console.log(this.leerlingenpervak);
+                    var absenties = this.leerlingenpervak;
+
+                    for (var i=0; i < absenties.length; i++) {
+                        if (absenties[i].absent !== absenties[i].absent_old) {
+                            if (absenties[i].absent === false) {
+                                var ajax = this.$.ajax_absentie_verwijderen;
+                                ajax.url="http://localhost:8080/absentie/" + absenties[i].absent_old_id;
+                                ajax.contentType="application/json";
+                                ajax.generateRequest();
+                            }
+                            else {
+                                var ajax2 = this.$.ajax_absent_doorgeven;
+                                ajax2.contentType = "application/json";
+                                ajax2.body = {
+                                    "reden": "N/A",
+                                    "toelichting": "Niet aanwezig bij de les",
+                                    "persoonId": absenties[i].persoonId,
+                                    "lesId": this.$$('input[name="les"]:checked').value
+                                };
+                                ajax2.generateRequest();
+                            }
+                        }
+                    }
+                },
+
+                _absent_doorgeven_handler: function (request) {
+                    if (request.detail.status === 200) console.log("goed absent gemeld");
+                    else console.log("absent melden fout gegaan");
+                },
+
+                _absentie_verwijderen_handler: function (request) {
+                  if(request.detail.status === 200) {
+                      console.log("goed verwijderd");
+                  }
+                  else {
+                      console.log("niet gelukt");
+                  }
                 },
 
                 _klas_ophalen: function () {
@@ -209,7 +272,7 @@
                 },
 
                 _klas_ophalen_handler: function (request) {
-                    this.leerlingenpervak = request.detail.response;
+                    this.leerlingen_zonder = request.detail.response;
                     var ajax = this.$.ajax_absenties_ophalen;
                     ajax.url="http://localhost:8080/les/absenties/" + this.$$('input[name="les"]:checked').value;
                     ajax.contentType="application/json";
@@ -218,7 +281,7 @@
 
                 _absenties_ophalen_handler: function (request) {
                     var absenties = request.detail.response;
-                    var klassenlijst = this.leerlingenpervak;
+                    var klassenlijst = this.leerlingen_zonder;
 
                     for (var i=0; i< klassenlijst.length; i++) {
                         klassenlijst[i].absent_old = false;
@@ -227,6 +290,7 @@
                             if (klassenlijst[i].persoonId === absenties[j].persoon.persoonId) {
                                 klassenlijst[i].absent = true;
                                 klassenlijst[i].absent_old = true;
+                                klassenlijst[i].absent_old_id = absenties[j].absentieId;
                             }
                         }
                     }

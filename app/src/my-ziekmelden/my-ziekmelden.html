@@ -53,7 +53,7 @@
             }
 
             #goed {
-                background-color: #a9ff8c;
+                background-color: greenyellow;
                 display: none;
                 border-radius: 0 0 8px 8px;
                 margin: 0 1px;
@@ -153,7 +153,13 @@
                 on-response="_meld_ziek_handler">
         </iron-ajax>
 
-
+        <iron-ajax
+                id="ajax_absenties_ophalen"
+                method="GET"
+                url=""
+                handle-as="json"
+                on-response="_absenties_ophalen_handler">
+        </iron-ajax>
 
     </template>
 
@@ -187,6 +193,9 @@
                     },
                     lessen: {
                         type: Array
+                    },
+                    lessen_vandaag: {
+                        type: Array
                     }
                 },
 
@@ -212,8 +221,11 @@
                             lessen_vandaag.push(alle_lessen[i]);
                         }
                     }
-                    this.lessen = lessen_vandaag;
-                    if (this.lessen.length === 0) {
+
+                    this.lessen_vandaag = lessen_vandaag;
+                    this.$.fout.innerText = "Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.";
+
+                    if (this.lessen_vandaag.length === 0) {
                         this.$.meldziek.disabled = true;
                         this.$.goed.style.display = "block";
                         this.$.goed.innerText = "Je hebt geen lessen vandaag. Je hoeft je dus niet ziek te melden"
@@ -221,11 +233,38 @@
                     else {
                         this.$.meldziek.disabled = false;
                         this.$.goed.style.display = "none";
-                        this.$.goed.innerText = "Je bent ziek gemeld! Veel beterschap"
+                        this.$.goed.innerText = "Je bent ziek gemeld! Veel beterschap";
+
+
+                        var ajax = this.$.ajax_absenties_ophalen;
+                        ajax.url="http://localhost:8080/" + this.c_user.rol + "/absenties/" + this.c_user.id;
+                        ajax.contentType="application/json";
+                        ajax.generateRequest();
                     }
+
 
                 },
 
+                _absenties_ophalen_handler: function (request) {
+                    var absenties = request.detail.response;
+                    var lessen = this.lessen_vandaag;
+
+                    for (var i=0; i< absenties.length; i++) {
+                        for (var j=0; j<lessen.length; j++) {
+                            if (lessen[j].datum === absenties[i].les.datum) {
+                                this.$.meldziek.disabled = true;
+                                this.$.fout.innerText = "Je bent al absent gemeld voor (een deel van) vandaag, annuleer eerst je absenties voor vandaag in het 'Absentie Overzicht'";
+                                this.$.fout.style.display = "block";
+                            }
+                        }
+                    }
+                    this.lessen = this.lessen_vandaag;
+
+                },
+
+                //Als alle lessen ziek: Niet meer veranderbaar,
+                //Als deel ziek: Ziek melden toegestaan, absenties worden verwijderd,
+                //Als helemaal niet ziek: Ziek melden toegestaan
                 _meld_ziek: function () {
                     var ajax = this.$.ajax_ziek_melden;
                     ajax.contentType="application/json";
