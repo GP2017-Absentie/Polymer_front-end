@@ -255,12 +255,6 @@
                 },
 
                 _absentie_verwijderen_handler: function (request) {
-                  if(request.detail.status === 200) {
-                      console.log("goed verwijderd");
-                  }
-                  else {
-                      console.log("niet gelukt");
-                  }
                 },
 
                 _klas_ophalen: function () {
@@ -319,7 +313,6 @@
                 _are_strings_equal: function(p_str1, p_str2) {
                     if(p_str2 === 'both'&& p_str1 !== 'undefined')
                         return true;
-                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
                     return (p_str1===p_str2);
                 },
                 _toast_clicked: function(e) {

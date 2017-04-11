@@ -94,7 +94,7 @@
         </paper-toast>
         <h1>Absent Melden</h1>
         <div class="my-input">
-            <paper-input label="Selecteer een datum" autofocus type="date" min="{{datum_min}}" value="{{datum}}"></paper-input>
+            <paper-input onkeydown="return false" label="Selecteer een datum" autofocus type="date" min="{{datum_min}}" value="{{datum}}"></paper-input>
         </div>
         <br>
         <div id="table">
@@ -335,7 +335,6 @@
 
                         }
                         else {
-                            console.log(reden === undefined);
                             this.error_message = "Niet alle gegevens kloppen";
                             if (date === null) this.error_message = "Datum is niet ingevuld";
                             else if (checked.length === 0) this.error_message = "Selecteer minimaal één les";
@@ -380,7 +379,6 @@
                 _are_strings_equal: function(p_str1, p_str2) {
                     if(p_str2 === 'both'&& p_str1 !== 'undefined')
                         return true;
-                    //console.log("_are_strings_equal: " + p_str1 + " met: " + p_str2);
                     return (p_str1===p_str2);
                 },
 

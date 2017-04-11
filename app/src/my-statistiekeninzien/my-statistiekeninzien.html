@@ -123,10 +123,12 @@
                         type: String
                     },
                     redenen:{
-                        type: Object
+                        type: Array,
+                        value: []
                     },
                     aanwezigheid:{
-                        type: Object
+                        type: Array,
+                        value: []
                     }
                 },
                 _absenties_ophalen: function (user, date) {
@@ -134,8 +136,8 @@
                         komende_absenties: [],
                         verleden_absenties: []
                     };
-                    this.redenen ={};
-                    this.aanwezigheid ={};
+                    this.redenen = [];
+                    this.aanwezigheid = [];
                     this.gemist_percentage = "";
                     this.totaal_lessen ="";
                     this.gemiste_uren = "";
@@ -222,7 +224,6 @@
                         }
                     }
                     var aanwezige_lessen = parseInt(this.totaal_lessen)-parseInt(this.gemiste_uren);
-                    console.log(aanwezige_lessen);
                     this.aanwezigheid = [['presentie', 'aantal'],['Aanwezig',aanwezige_lessen],['Absent',parseInt(this.gemiste_uren)]];
                 },
 
