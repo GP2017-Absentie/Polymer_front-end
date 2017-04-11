@@ -32,9 +32,10 @@
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
             paper-button.groen {
-                background-color: #58B957;
+                background-color: #1a9fd9;/*#58B957;*/
                 color: white;
                 float: right;
+                width: 160px;
                 }
             paper-button.annuleren {
                 background-color: red;
@@ -60,13 +61,13 @@
 
 
             <brainy-table items="[[absenties.verleden_absenties]]" details-enabled page-size="5" default-sort-path="les.datum" default-sort-direction="desc">
-                <brainy-table-column name="Datum" width="45px" sort-by="les.datum">
+                <brainy-table-column name="Datum" width="70px" sort-by="les.datum" filter-by="les.datum_lokaal">
                     <template>[[item.les.datum_lokaal]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Absentie">
+                <brainy-table-column name="Absentie" width="160px" filter-by="reden">
                     <template><paper-button active="{{expanded}}" toggles class="groen">[[item.reden]]</paper-button></template>
                 </brainy-table-column>
-                <brainy-table-column name="Vak" width="45px">
+                <brainy-table-column name="Vak" width="90px" filter-by="les.vakCode">
                     <template>[[item.les.vakCode]]</template>
                 </brainy-table-column>
                 <brainy-table-column name width="20px" align-right flex="0">
@@ -116,13 +117,13 @@
                 Komende absenties
 
             <brainy-table items="[[absenties.komende_absenties]]" details-enabled page-size="5" default-sort-path="les.datum" default-sort-direction="asc">
-                <brainy-table-column name="Datum" sort-by="les.datum">
+                <brainy-table-column name="Datum" sort-by="les.datum" width="70px" filter-by="les.datum_lokaal">
                     <template>[[item.les.datum_lokaal]]</template>
                 </brainy-table-column>
-                <brainy-table-column name="Absentie">
+                <brainy-table-column name="Absentie" width="160px" filter-by="reden">
                     <template><paper-button active="{{expanded}}" toggles class="groen">[[item.reden]]</paper-button></template>
                 </brainy-table-column>
-                <brainy-table-column name="Vak">
+                <brainy-table-column name="Vak" width="90px" filter-by="les.vakCode">
                     <template>[[item.les.vakCode]]</template>
                 </brainy-table-column>
                 <brainy-table-column name="Annuleren">

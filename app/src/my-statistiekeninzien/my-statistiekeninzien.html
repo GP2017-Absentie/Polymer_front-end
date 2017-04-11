@@ -31,15 +31,61 @@
                 background: #1a9fd9; /* kind of blue */
                 --paper-button-ink-color: #00567B; /* kind of dark blue */
             }
-            google-chart {
-                height: 400px;
-                width: 50em;
+            .chart {
+                border-radius: 5px;
+                border:1px solid #999999;
+                position: relative;
+                padding-bottom: 80%;
+                margin-bottom: 5px;
+                height: 0;
+                overflow:hidden;
+                -webkit-box-shadow: 0px 0px 2px 1px rgba(143,140,143,1);
+                -moz-box-shadow: 0px 0px 2px 1px rgba(143,140,143,1);
+                box-shadow: 0px 0px 2px 1px rgba(143,140,143,1);
+                width: 100%
             }
-            .float{
-                float:left;
+            #chart1, #chart2 {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width:100%;
+                height:100%;
             }
-            .clear{
-                clear:both;
+            .clear {
+                display: none;
+            }
+            #chart_table {
+                margin-bottom: 10px;
+            }
+            @media screen and (min-width: 600px){
+                .chart {
+                    padding-bottom: 90%;
+                }
+
+            }
+            @media screen and (min-width: 800px){
+                .chart {
+                    width:49%;
+                    padding-bottom: 70%;
+                }
+                .clear {
+                    display: block;
+                    clear: both;
+                }
+                #float_left {
+                    float: left;
+                }
+                #float_right {
+                    float: right;
+                }
+
+            }
+
+            @media screen and (min-width: 1200px){
+                .chart {
+                    padding-bottom: 50%;
+                }
+
             }
         </style>
         <paper-toast
@@ -49,24 +95,32 @@
             <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
         </paper-toast>
         <h1>Statistieken Inzien</h1>
-        <table>
+        <table id="chart_table">
             <tr>
                 <td>Gemiste Lessen:</td>
                 <td>[[gemiste_lessen]] van de [[verleden_lessen]]  ([[gemist_percentage]]% totaal gemist)</td>
             </tr>
         </table>
 
-        <google-chart class="float"
-                      type='pie'
-                      options='{"title": "Gemiste lessen","is3D": "true"}'
-                      data='{{aanwezigheid}}'>
-        </google-chart>
-        <google-chart class="float"
-                type='pie'
-                options='{"title": "Reden van absentie","is3D": "true"}'
-                data='{{redenen}}'>
-        </google-chart>
-        <br class="clear">
+        <div>
+            <div class="chart" id="float_left">
+                <google-chart id="chart1"
+                              type='pie'
+                              options='{{options_aanwezigheid}}'
+                              data='{{aanwezigheid}}'>
+                </google-chart>
+            </div>
+            <div>
+                <div class="chart" id="float_right">
+                    <google-chart id="chart2"
+                                  type='pie'
+                                  options='{{options_redenen}}'
+                                  data='{{redenen}}'>
+                    </google-chart>
+                </div>
+            </div>
+            <br class="clear">
+        </div>
 
         <iron-ajax
                 id="ajax_absenties_ophalen"
@@ -126,8 +180,55 @@
                     aanwezigheid:{
                         type: Array,
                         value: [["presentie", "aantal"],["aanwezig",1]]
+                    },
+                    options_aanwezigheid: {
+                        type: Object,
+                        value: {
+                            title: "Gemiste lessen",
+                            is3D: true,
+                            chartArea: {
+                                top: "50",
+                                width: "85%",
+                                height: "70%"
+                            },
+                            hAxis: {textPosition: 'in'}, vAxis: {textPosition: 'in'},
+                            legend: {
+                                position: "bottom"
+
+                            }
+                        }
+                    },
+                    options_redenen: {
+                        type: Object,
+                        value: {
+                            title: "Reden van absentie",
+                            is3D: true,
+                            chartArea: {
+                                top: "50",
+                                width: "85%",
+                                height: "70%"
+                            },
+                            hAxis: {textPosition: 'in'}, vAxis: {textPosition: 'in'},
+                            legend: {
+                                position: "bottom"
+
+                            }
+                        }
                     }
                 },
+
+                windowResize: function() {
+                    if (this.c_visible) {
+                        this.$.chart1.redraw();
+                        this.$.chart2.redraw();
+                    }
+                },
+
+                ready: function() {
+                    var that = this;
+                    window.addEventListener("resize", function() { that.windowResize(); });
+                },
+                
                 _absenties_ophalen: function (user, date) {
                     this.redenen = [["reden", "aantal"],["aanwezig",1]];
                     this.aanwezigheid = [["presentie", "aantal"],["aanwezig",1]];
@@ -210,7 +311,7 @@
                     if (verleden_lessen.length !== 0) {
                         var aanwezige_lessen = parseInt(this.verleden_lessen)-parseInt(this.gemiste_lessen);
                         this.aanwezigheid = [['presentie', 'aantal'],['Aanwezig',aanwezige_lessen],['Absent',parseInt(this.gemiste_lessen)]];
-                        this.gemist_percentage = String(parseInt(this.gemiste_lessen) / parseInt(this.verleden_lessen)* 100);
+                        this.gemist_percentage = Math.floor(String(parseInt(this.gemiste_lessen) / parseInt(this.verleden_lessen)* 100));
                     }
                 },
 
