@@ -44,6 +44,22 @@
             .clear {
                 clear: both;
             }
+            #goed {
+                background-color: greenyellow;
+                display: none;
+                border-radius: 0 0 8px 8px;
+                margin: 0 1px;
+            }
+            #fout {
+                background-color: rgba(255, 83, 66, 0.58);
+                display: none;
+                border-radius: 0 0 8px 8px;
+                margin: 0 1px;
+            }
+            .padding {
+                padding: 15px;
+                text-align: center;
+            }
         </style>
 
         <paper-toast
@@ -94,6 +110,8 @@
                 </brainy-table-column>
                 <div no-results>Je hebt geen lessen vandaag</div>
             </brainy-table>
+            <div id="goed" class="padding">De absenties zijn doorgegeven!</div>
+            <div id="fout" class="padding">Er is helaas iets mis gegaan. Probeer het nog een keer of neem contact op met de Hogeschool Utrecht.</div>
 
         </div>
                 <paper-button id='absentie' class="indigo" raised on-tap="absenties_doorgeven">Absenties Doorgeven</paper-button>
@@ -247,17 +265,20 @@
                             }
                         }
                     }
+                    this.$.goed.style.display = "block";
+                    this.$.absentie.disabled = true;
                 },
 
                 _absent_doorgeven_handler: function (request) {
-                    if (request.detail.status === 200) console.log("goed absent gemeld");
-                    else console.log("absent melden fout gegaan");
                 },
 
                 _absentie_verwijderen_handler: function (request) {
                 },
 
                 _klas_ophalen: function () {
+                    this.$.fout.style.display = "none";
+                    this.$.goed.style.display = "none";
+                    this.$.absentie.disabled = false;
                     this.leerlingenpervak = [];
                         var ajax = this.$.ajax_klas_ophalen;
                         ajax.url="http://localhost:8080/les/studenten/" + this.$$('input[name="les"]:checked').value;

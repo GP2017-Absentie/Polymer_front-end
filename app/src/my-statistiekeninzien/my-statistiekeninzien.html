@@ -52,7 +52,7 @@
         <table>
             <tr>
                 <td>Gemiste Lessen:</td>
-                <td>[[gemiste_uren]] van de [[totaal_lessen]]  ([[gemist_percentage]]% totaal gemist)</td>
+                <td>[[gemiste_lessen]] van de [[verleden_lessen]]  ([[gemist_percentage]]% totaal gemist)</td>
             </tr>
         </table>
 
@@ -107,16 +107,13 @@
                          regel in de functie dat er niets gebeurd
                          als c_visible false is */
                     },
-                    absenties: {
-                        type: Object
-                    },
                     c_systeemdatumstandaard: {
                         type: String
                     },
-                    gemiste_uren:{
+                    gemiste_lessen:{
                         type: String
                     },
-                    totaal_lessen:{
+                    verleden_lessen:{
                         type: String
                     },
                     gemist_percentage:{
@@ -124,23 +121,19 @@
                     },
                     redenen:{
                         type: Array,
-                        value: []
+                        value: [["reden", "aantal"],["aanwezig",1]]
                     },
                     aanwezigheid:{
                         type: Array,
-                        value: []
+                        value: [["presentie", "aantal"],["aanwezig",1]]
                     }
                 },
                 _absenties_ophalen: function (user, date) {
-                    this.absenties = {
-                        komende_absenties: [],
-                        verleden_absenties: []
-                    };
-                    this.redenen = [];
-                    this.aanwezigheid = [];
-                    this.gemist_percentage = "";
-                    this.totaal_lessen ="";
-                    this.gemiste_uren = "";
+                    this.redenen = [["reden", "aantal"],["aanwezig",1]];
+                    this.aanwezigheid = [["presentie", "aantal"],["aanwezig",1]];
+                    this.gemist_percentage = "0";
+                    this.verleden_lessen ="0";
+                    this.gemiste_lessen = "0";
 
                     if (this.c_visible) {
                         var ajax = this.$.ajax_absenties_ophalen;
@@ -159,45 +152,39 @@
 
 
                     for(var i=0; i < alle_absenties.length; i++) {
-                        alle_absenties[i].les.starttijd = alle_absenties[i].les.starttijd.slice(0,5);
-                        alle_absenties[i].les.eindtijd = alle_absenties[i].les.eindtijd.slice(0,5);
-                        var date = alle_absenties[i].les.datum;
-
-                        date = date.slice(8) + '-' + date.slice(5,8) + date.slice(0,4);
-
-                        if (Date.parse(alle_absenties[i].les.datum) <= Date.parse(this.c_systeemdatumstandaard)) {
-                            alle_absenties[i].les.datum_lokaal = date;
+                        if (Date.parse(alle_absenties[i].les.datum) < Date.parse(this.c_systeemdatumstandaard)) {
                             verleden_absenties.push(alle_absenties[i])
                         }
                     }
-                    this.absenties = {
-                        verleden_absenties: verleden_absenties
+                    this.gemiste_lessen = String(verleden_absenties.length);
 
-                    };
-                    this.gemiste_uren = String(verleden_absenties.length);
-                    var redenen = [['reden', 'aantal'],['ziek',0],['Tandarts',0],['Dokter',0],['Religieuze Feestdag',0],['Huwelijk',0],['Begrafenis',0],['Overig',0],['Niet aanwezig',0]];
-                    for(var j=0; j < verleden_absenties.length; j++) {
-                        switch (verleden_absenties[j].reden){
-                            case 'ziek': redenen[1][1] +=1;
-                                break;
-                            case 'Tandarts': redenen[2][1] +=1;
-                                break;
-                            case 'Dokter': redenen[3][1] +=1;
-                                break;
-                            case 'Religieuze_Feestdag': redenen[4][1] +=1;
-                                break;
-                            case 'Huwelijk': redenen[5][1] +=1;
-                                break;
-                            case 'Begrafenis': redenen[6][1] +=1;
-                                break;
-                            case 'Overig': redenen[7][1] +=1;
-                                break;
-                            case 'Niet_aanwezig': redenen[8][1] +=1;
-                                break;
+                    var redenen = [['reden', 'aantal'],['Ziek',0],['Tandarts',0],['Dokter',0],['Religieuze Feestdag',0],['Huwelijk',0],['Begrafenis',0],['Overig',0],['Niet aanwezig',0]];
 
-                        }
-                        this.redenen = redenen;
-                    }
+                    if (verleden_absenties.length !== 0) {
+                        for(var j=0; j < verleden_absenties.length; j++) {
+                            switch (verleden_absenties[j].reden){
+                                case 'Ziek': redenen[1][1] +=1;
+                                    break;
+                                case 'Tandarts': redenen[2][1] +=1;
+                                    break;
+                                case 'Dokter': redenen[3][1] +=1;
+                                    break;
+                                case 'Religieuze feestdag': redenen[4][1] +=1;
+                                    break;
+                                case 'Huwelijk': redenen[5][1] +=1;
+                                    break;
+                                case 'Begrafenis': redenen[6][1] +=1;
+                                    break;
+                                case 'Overig': redenen[7][1] +=1;
+                                    break;
+                                case 'Niet aanwezig': redenen[8][1] +=1;
+                                    break;
+
+                            }
+                    }}
+                    else redenen = [["presentie", "aantal"],["aanwezig",1]];
+
+                    this.redenen = redenen;
 
                 },
                 _lessen_ophalen: function (user, date) {
@@ -212,19 +199,19 @@
 
                 _lessen_ophalen_handler: function (request) {
                     var alle_lessen = request.detail.response;
-                    this.totaal_lessen = String(alle_lessen.length);
-                    var lessen_vandaag = [];
-                    this.gemist_percentage = String(parseInt(this.gemiste_uren) / parseInt(this.totaal_lessen)* 100);
+                    var verleden_lessen = [];
 
                     for(var i=0; i < alle_lessen.length; i++) {
-                        if(alle_lessen[i].datum === this.c_systeemdatumstandaard) {
-                            alle_lessen[i].starttijd = alle_lessen[i].starttijd.slice(0,5);
-                            alle_lessen[i].eindtijd = alle_lessen[i].eindtijd.slice(0,5);
-                            lessen_vandaag.push(alle_lessen[i]);
+                        if(Date.parse(alle_lessen[i].datum) < Date.parse(this.c_systeemdatumstandaard)) {
+                            verleden_lessen.push(alle_lessen[i]);
                         }
                     }
-                    var aanwezige_lessen = parseInt(this.totaal_lessen)-parseInt(this.gemiste_uren);
-                    this.aanwezigheid = [['presentie', 'aantal'],['Aanwezig',aanwezige_lessen],['Absent',parseInt(this.gemiste_uren)]];
+                    this.verleden_lessen = String(verleden_lessen.length);
+                    if (verleden_lessen.length !== 0) {
+                        var aanwezige_lessen = parseInt(this.verleden_lessen)-parseInt(this.gemiste_lessen);
+                        this.aanwezigheid = [['presentie', 'aantal'],['Aanwezig',aanwezige_lessen],['Absent',parseInt(this.gemiste_lessen)]];
+                        this.gemist_percentage = String(parseInt(this.gemiste_lessen) / parseInt(this.verleden_lessen)* 100);
+                    }
                 },
 
                 _go_home: function() {
